@@ -1,0 +1,71 @@
+import sqlite3
+
+
+def __connect_movie_db(db):
+    return sqlite3.connect(db)
+
+
+def __get_data_from_cursor(cursor):
+    result = []
+    data_list = cursor.fetchall()
+    for data in data_list:
+        info = {
+            "id": data[0],
+            "cover": data[1],
+            "name": data[2],
+            "score": data[3],
+            "area": data[4],
+            "language": data[5],
+            "category": data[6],
+            "release_date": data[7],
+            "duration": data[8],
+            "director": data[9],
+            "actors": data[10],
+            "summary": data[11],
+            "download_link": data[12],
+        }
+        result.append(info)
+    return result
+
+
+def __get_data_from_db(db, sql, args):
+    conn = None
+    try:
+        conn = __connect_movie_db(db)
+        cursor = conn.cursor()
+        cursor.execute(sql, args)
+        result = __get_data_from_cursor(cursor)
+        return result
+    except sqlite3.Error as e:
+        print(f"get data error: {str(e)}, SQL: {sql}, 参数: {args}")
+        return []
+    finally:
+        if conn:
+            conn.close()
+
+
+def get_page_data(db, page, per_page, sort_by="time", sort_order="desc"):
+    """
+    获取分页数据，支持排序
+    :param db: 数据库文件
+    :param page: 页码
+    :param per_page: 每页条数
+    :param sort_by: 排序字段,可选值:time(发布时间)、score(评分)
+    :param sort_order: 排序方向,可选值:asc(升序)、desc(降序)
+    :return: 数据列表
+    """
+    offset = (page - 1) * per_page
+    if sort_by not in ["time", "score"]:
+        sort_by = "time"
+    if sort_order not in ["asc", "desc"]:
+        sort_order = "desc"
+    order_column = "release_date" if sort_by == "time" else "score"
+    order_direction = "DESC" if sort_order == "desc" else "ASC"
+    sql = f"SELECT * FROM media ORDER BY {order_column} {order_direction} LIMIT ? OFFSET ?"
+    return __get_data_from_db(db, sql, (per_page, offset))
+
+
+def get_search_data(db, name):
+    return __get_data_from_db(
+        db, "SELECT * FROM media WHERE name LIKE ?", (f"%{name}%",)
+    )

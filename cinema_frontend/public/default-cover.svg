@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450">
+  <defs>
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1E3A8A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2563EB;stop-opacity:0.7" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="300" height="450" fill="url(#bg-gradient)" />
+  
+  <!-- 电影胶片图案 -->
+  <g transform="translate(75, 150)" fill="white" opacity="0.7" filter="url(#shadow)">
+    <rect x="0" y="0" width="150" height="150" fill="none" stroke="white" stroke-width="2" />
+    <path d="M30,0 v150 M60,0 v150 M90,0 v150 M120,0 v150 M0,30 h150 M0,60 h150 M0,90 h150 M0,120 h150" stroke="white" stroke-width="1" opacity="0.5" />
+    <circle cx="0" cy="0" r="10" />
+    <circle cx="150" cy="0" r="10" />
+    <circle cx="0" cy="150" r="10" />
+    <circle cx="150" cy="150" r="10" />
+  </g>
+  
+  <!-- 电影图标 -->
+  <g transform="translate(125, 125)">
+    <path d="M25,0 l-50,30 v-60 z" fill="white" filter="url(#shadow)" />
+  </g>
+  
+  <!-- 文字 -->
+  <text x="150" y="350" font-family="Arial, sans-serif" font-size="20" fill="white" text-anchor="middle" filter="url(#shadow)">暂无封面</text>
+  <text x="150" y="380" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle" opacity="0.8">家庭影院</text>
+</svg> 

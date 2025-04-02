@@ -1,0 +1,30 @@
+# 系统文件
+**/.DS_Store
+**/*.log
+**/logs/
+
+# 编辑器相关
+**/.idea/
+**/.vscode/
+**/*.swp
+**/*.swo
+
+# React/Node.js相关
+cinema_frontend/build/
+cinema_frontend/node_modules/
+
+# Python相关
+**/__pycache__/
+
+# Git相关
+.git
+.gitignore
+
+# 其他不需要的文件
+cinema_scrapy/movie.db
+cinema_scrapy/tvshow.db
+cinema_scrapy/backup
+.dockerignore
+Dockerfile
+README.md
+data/
