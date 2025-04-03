@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { Movie, TvShow, PaginationParams, SearchParams } from '../types';
 
-const BASE_URL = 'http://192.168.6.129:7000';
+// 使用当前应用的主机地址和协议
+const BASE_URL = `${window.location.protocol}//${window.location.hostname}:7000`;
 
 // 处理封面图片URL，添加代理前缀
 export const getProxiedCoverUrl = (coverUrl: string): string => {
