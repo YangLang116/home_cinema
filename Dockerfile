@@ -22,10 +22,14 @@ COPY . /app/
 # 安装Python依赖
 RUN pip install --no-cache-dir scrapy flask flask-cors gunicorn
 
+# 获取scrapy命令的完整路径
+RUN SCRAPY_PATH=$(which scrapy)
+
 # 配置cinema_scrapy，创建定时任务
 WORKDIR /app/cinema_scrapy
-RUN echo "0 2 */3 * * cd /app/cinema_scrapy && scrapy crawl movie >> /var/log/cron.log 2>&1" > /etc/cron.d/cinema-cron \
-    && echo "30 2 */3 * * cd /app/cinema_scrapy && scrapy crawl tvshow >> /var/log/cron.log 2>&1" >> /etc/cron.d/cinema-cron \
+RUN SCRAPY_PATH=$(which scrapy) \
+    && echo "0 2 */3 * * cd /app/cinema_scrapy && $SCRAPY_PATH crawl movie >> /var/log/cron.log 2>&1" > /etc/cron.d/cinema-cron \
+    && echo "30 2 */3 * * cd /app/cinema_scrapy && $SCRAPY_PATH crawl tvshow >> /var/log/cron.log 2>&1" >> /etc/cron.d/cinema-cron \
     && chmod 0644 /etc/cron.d/cinema-cron \
     && crontab /etc/cron.d/cinema-cron \
     && touch /var/log/cron.log
@@ -52,4 +56,4 @@ tail -f /var/log/cron.log\n\
 EXPOSE 7000 7001
 
 # 启动所有服务
-CMD ["/app/start.sh"] 
+CMD ["/app/start.sh"]
