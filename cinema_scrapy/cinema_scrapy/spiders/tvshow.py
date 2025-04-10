@@ -13,7 +13,6 @@ class TvshowSpider(scrapy.Spider):
     visited_urls = set()
 
     def start_requests(self):
-        sync_db("tvshow.db")
         for url in self.start_urls:
             yield scrapy.Request(url=url, callback=self.parse)
 
@@ -90,3 +89,6 @@ class TvshowSpider(scrapy.Spider):
         ).get()
 
         yield tv_item
+
+    def closed(self, reason):
+        sync_db("tvshow.db")

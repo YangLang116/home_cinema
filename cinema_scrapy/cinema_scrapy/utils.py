@@ -29,4 +29,4 @@ def sync_db(db_name):
 def is_downloadable(url):
     if url is None:
         return False
-    return url.startswith("magnet:") or url.endswith("thunder://")
+    return url.startswith("magnet:") or url.startswith("thunder:")

@@ -11,7 +11,6 @@ class MovieSpider(scrapy.Spider):
     visited_urls = set()
 
     def start_requests(self):
-        sync_db("movie.db")
         for url in self.start_urls:
             yield scrapy.Request(url=url, callback=self.parse)
 
@@ -77,3 +76,6 @@ class MovieSpider(scrapy.Spider):
         movie_item["summary"] = response.css("h2.b5f5b3 + p.b1f40f7888::text").get()
 
         yield movie_item
+
+    def closed(self, reason):
+        sync_db("movie.db")
