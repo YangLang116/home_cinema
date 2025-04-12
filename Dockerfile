@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     cron \
     curl \
     gnupg \
-    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && curl -fsSL https://deb.nodesource.com/setup_18.14.2 | bash - \
     && apt-get install -y nodejs \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
