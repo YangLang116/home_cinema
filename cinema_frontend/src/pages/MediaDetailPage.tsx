@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { 
-  Box, 
-  Container, 
-  Typography, 
-  Card, 
-  CardMedia, 
+import {
+  Box,
+  Container,
+  Typography,
+  Card,
+  CardMedia,
   Chip,
   Rating,
   Divider,
@@ -32,6 +32,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { Movie, TvShow, MediaType } from '../types';
 import { searchMovie, searchTvShow, getProxiedCoverUrl } from '../services/api';
 import { GridContainer, GridItem } from '../components/GridWrapper';
+import ClipboardJS from 'clipboard';
 
 // 缺省封面图片地址
 const DEFAULT_COVER = '/default-cover.svg';
@@ -53,24 +54,24 @@ function isTvShow(media: Movie | TvShow): media is TvShow {
 // 将剧集分组（例如按季）
 function groupEpisodes(episodes: { name: string; link: string }[]) {
   const groups: Record<string, { name: string; link: string }[]> = {};
-  
+
   episodes.forEach(episode => {
     // 尝试从名称中提取季信息（例如 S01E01, 第1季第1集, 等）
     const seasonRegex = /[sS](\d+)|第(\d+)季/;
     const match = episode.name.match(seasonRegex);
-    
+
     let season = '其他';
     if (match) {
       season = `第${match[1] || match[2]}季`;
     }
-    
+
     if (!groups[season]) {
       groups[season] = [];
     }
-    
+
     groups[season].push(episode);
   });
-  
+
   return groups;
 }
 
@@ -94,7 +95,7 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
   useEffect(() => {
     // 尝试从位置状态中获取媒体数据
     const locationState = location.state as { media?: Movie | TvShow } | null;
-    
+
     if (locationState?.media) {
       // 如果从列表页传递了数据，则直接使用
       setMedia(locationState.media);
@@ -141,36 +142,20 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
     navigate(-1);
   };
 
-  // 处理下载链接
-  const handleDownload = (link: string) => {
-    navigator.clipboard.writeText(link)
-      .then(() => {
-        showSnackbar('下载链接已复制到剪贴板', 'success');
-      })
-      .catch(err => {
-        console.error('复制失败:', err);
-        showSnackbar('复制失败，请手动复制链接', 'error');
-      });
-  };
+  // 用于存储 ClipboardJS 实例
+  const clipboardRef = useRef<ClipboardJS | null>(null);
 
-  // 处理电视剧集下载
-  const handleEpisodeDownload = (link: string) => {
-    navigator.clipboard.writeText(link)
-      .then(() => {
-        showSnackbar('下载链接已复制到剪贴板', 'success');
-      })
-      .catch(err => {
-        console.error('复制失败:', err);
-        showSnackbar('复制失败，请手动复制链接', 'error');
-      });
-  };
+  useEffect(() => {
+    return () => {
+      // 组件卸载时销毁 ClipboardJS 实例
+      clipboardRef.current?.destroy();
+    };
+  }, []);
 
   // 复制所有下载链接
   const handleCopyAllLinks = () => {
     if (!media) return;
-
     let allLinks = '';
-
     if (isMovie(media)) {
       // 电影只有一个下载链接
       allLinks = media.download_link;
@@ -180,17 +165,30 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
         .map(episode => episode.link)
         .join('\n');
     }
-
     if (allLinks) {
-      navigator.clipboard.writeText(allLinks)
-        .then(() => {
-          showSnackbar('所有下载链接已复制到剪贴板', 'success');
-        })
-        .catch(err => {
-          console.error('复制失败:', err);
-          showSnackbar('复制失败，请手动复制链接', 'error');
-        });
+      copyText(allLinks);
     }
+  };
+
+  // 封装复制逻辑
+  const copyText = (text: string) => {
+    const fakeButton = document.createElement('button');
+    clipboardRef.current = new ClipboardJS(fakeButton, {
+      text: () => text
+    });
+
+    clipboardRef.current.on('success', () => {
+      showSnackbar('下载链接已复制到剪贴板', 'success');
+      clipboardRef.current?.destroy();
+    });
+
+    clipboardRef.current.on('error', () => {
+      showSnackbar('复制失败，请手动复制链接', 'error');
+      clipboardRef.current?.destroy();
+    });
+
+    // 触发复制操作
+    fakeButton.click();
   };
 
   // 显示通知消息
@@ -269,8 +267,8 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
   const categories = media.category ? media.category.split(',').map(cat => cat.trim()) : [];
 
   // 检查媒体类型是否与URL请求的类型一致
-  const isCorrectMediaType = 
-    (type === 'movie' && isMovie(media)) || 
+  const isCorrectMediaType =
+    (type === 'movie' && isMovie(media)) ||
     (type === 'tvshow' && isTvShow(media));
 
   if (!isCorrectMediaType) {
@@ -281,8 +279,8 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
   return (
     <Container>
       <Box sx={{ pt: 2, pb: 6 }}>
-        <Button 
-          startIcon={<ArrowBackIcon />} 
+        <Button
+          startIcon={<ArrowBackIcon />}
           onClick={handleBack}
           sx={{ mb: 2 }}
         >
@@ -294,9 +292,9 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
             {/* 封面部分 */}
             <GridItem xs={12} sm={4} md={3}>
               <Box
-                className="cover-container" 
-                sx={{ 
-                  position: 'relative', 
+                className="cover-container"
+                sx={{
+                  position: 'relative',
                   height: 'auto',
                   aspectRatio: '2/3',
                   borderRadius: 1,
@@ -326,10 +324,10 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
                 onClick={!imageError && !imageLoading ? handleOpenFullImage : undefined}
               >
                 {imageLoading && (
-                  <Box sx={{ 
-                    position: 'absolute', 
-                    display: 'flex', 
-                    alignItems: 'center', 
+                  <Box sx={{
+                    position: 'absolute',
+                    display: 'flex',
+                    alignItems: 'center',
                     justifyContent: 'center',
                     width: '100%',
                     height: '100%',
@@ -366,7 +364,7 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
                     onError={handleImageError}
                   />
                 )}
-                
+
                 {/* 只在非错误、非加载状态下显示悬浮效果 */}
                 {!imageError && !imageLoading && (
                   <>
@@ -387,7 +385,7 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
                       }}
                     />
                     {/* 全屏查看提示文字 */}
-                    <Box 
+                    <Box
                       className="fullscreen-text"
                       sx={{
                         position: 'absolute',
@@ -407,7 +405,7 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
                     >
                       点击查看大图
                     </Box>
-                    <IconButton 
+                    <IconButton
                       className="fullscreen-icon"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -510,7 +508,7 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
                         variant="contained"
                         color="primary"
                         startIcon={<DownloadIcon />}
-                        onClick={() => handleDownload(media.download_link)}
+                        onClick={() => copyText(media.download_link)}
                         sx={{ borderRadius: 2 }}
                       >
                         复制下载链接
@@ -535,7 +533,7 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
                           </Button>
                         </Tooltip>
                       </Box>
-                      
+
                       {media.download_link.length > 10 ? (
                         // 当剧集数量较多时，使用分组手风琴组件
                         Object.entries(groupEpisodes(media.download_link)).map(([season, episodes]) => (
@@ -544,20 +542,14 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
                               <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
                                 <Typography>{season} ({episodes.length}集)</Typography>
                                 <Tooltip title={`复制${season}所有链接`}>
-                                  <IconButton 
-                                    size="small" 
+                                  <IconButton
+                                    size="small"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       const seasonLinks = episodes
                                         .map(episode => episode.link)
                                         .join('\n');
-                                      navigator.clipboard.writeText(seasonLinks)
-                                        .then(() => {
-                                          showSnackbar(`${season}的所有链接已复制`, 'success');
-                                        })
-                                        .catch(() => {
-                                          showSnackbar('复制失败', 'error');
-                                        });
+                                      copyText(seasonLinks);
                                     }}
                                     sx={{ mr: 2 }}
                                   >
@@ -575,9 +567,9 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
                                     color="primary"
                                     size="small"
                                     startIcon={<DownloadIcon />}
-                                    onClick={() => handleEpisodeDownload(episode.link)}
-                                    sx={{ 
-                                      borderRadius: 2, 
+                                    onClick={() => copyText(episode.link)}
+                                    sx={{
+                                      borderRadius: 2,
                                       justifyContent: 'flex-start',
                                       textAlign: 'left',
                                       whiteSpace: 'nowrap',
@@ -601,7 +593,7 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
                               variant="outlined"
                               color="primary"
                               startIcon={<DownloadIcon />}
-                              onClick={() => handleEpisodeDownload(episode.link)}
+                              onClick={() => copyText(episode.link)}
                               sx={{ borderRadius: 2, justifyContent: 'flex-start' }}
                             >
                               {episode.name}
@@ -635,7 +627,7 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
         }}
       >
         <Fade in={openFullImage} timeout={300}>
-          <Box sx={{ 
+          <Box sx={{
             position: 'relative',
             maxWidth: '90vw',
             maxHeight: '90vh',
@@ -665,9 +657,9 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
               <img
                 src={media.cover || DEFAULT_COVER}
                 alt={media.name}
-                style={{ 
-                  maxWidth: '100%', 
-                  maxHeight: '80vh', 
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '80vh',
                   margin: 'auto',
                   display: 'block',
                   objectFit: 'contain'
@@ -685,9 +677,9 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert 
-          onClose={handleCloseSnackbar} 
-          severity={snackbarSeverity} 
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbarSeverity}
           sx={{ width: '100%' }}
         >
           {snackbarMessage}
@@ -697,4 +689,4 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
   );
 };
 
-export default MediaDetailPage; 
+export default MediaDetailPage;
