@@ -9,8 +9,8 @@ COPY . /app/
 WORKDIR /app/cinema_scrapy
 RUN pip install scrapy \
     && SCRAPY_PATH=$(which scrapy) \
-    && echo "0 2 * * * cd /app/cinema_scrapy && $SCRAPY_PATH crawl movie >> /var/log/cron.log 2>&1" > /etc/cron.d/cinema-cron \
-    && echo "30 2 * * * cd /app/cinema_scrapy && $SCRAPY_PATH crawl tvshow >> /var/log/cron.log 2>&1" >> /etc/cron.d/cinema-cron \
+    && echo "0 2 * * * cd /app/cinema_scrapy && $SCRAPY_PATH crawl movie 2>> /var/log/cron.log" > /etc/cron.d/cinema-cron \
+    && echo "30 2 * * * cd /app/cinema_scrapy && $SCRAPY_PATH crawl tvshow 2>> /var/log/cron.log" >> /etc/cron.d/cinema-cron \
     && chmod 0644 /etc/cron.d/cinema-cron \
     && crontab /etc/cron.d/cinema-cron \
     && touch /var/log/cron.log
