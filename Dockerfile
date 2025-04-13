@@ -1,40 +1,25 @@
+# 选择基础镜像
 FROM python:3.9-slim
-
-# 设置工作目录
-WORKDIR /app
-
 # 安装基础依赖和工具
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    cron \
-    curl \
-    gnupg \
-    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
-    && apt-get install -y nodejs \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-# 安装serve工具用于前端部署
-RUN npm install -g serve
-
+RUN apt-get update && apt-get install -y cron tzdata curl nodejs && rm -rf /var/lib/apt/lists/*
+ENV TZ Asia/Shanghai
 # 复制所有项目文件
 COPY . /app/
-
-# 安装Python依赖
-RUN pip install --no-cache-dir scrapy flask flask-cors gunicorn
-
 # 配置cinema_scrapy，创建定时任务
 WORKDIR /app/cinema_scrapy
-RUN SCRAPY_PATH=$(which scrapy) \
+RUN pip install scrapy \
+    && SCRAPY_PATH=$(which scrapy) \
     && echo "0 2 * * * cd /app/cinema_scrapy && $SCRAPY_PATH crawl movie >> /var/log/cron.log 2>&1" > /etc/cron.d/cinema-cron \
     && echo "30 2 * * * cd /app/cinema_scrapy && $SCRAPY_PATH crawl tvshow >> /var/log/cron.log 2>&1" >> /etc/cron.d/cinema-cron \
     && chmod 0644 /etc/cron.d/cinema-cron \
     && crontab /etc/cron.d/cinema-cron \
     && touch /var/log/cron.log
-
+# 配置cinema_server
+WORKDIR /app/cinema_server
+RUN pip install -r requirements.txt && pip install gunicorn
 # 构建前端项目
 WORKDIR /app/cinema_frontend
-RUN npm install --legacy-peer-deps && npm run build
-
+RUN npm install --legacy-peer-deps && npm run build && npm install -g serve
 # 创建启动脚本
 WORKDIR /app
 RUN echo '#!/bin/bash\n\
@@ -48,9 +33,7 @@ cd /app/cinema_frontend && serve -l 7001 -s build &\n\
 tail -f /var/log/cron.log\n\
 ' > /app/start.sh \
     && chmod +x /app/start.sh
-
 # 暴露端口
 EXPOSE 7000 7001
-
 # 启动所有服务
 CMD ["/app/start.sh"] 
