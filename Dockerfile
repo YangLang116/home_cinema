@@ -1,7 +1,9 @@
 # 选择基础镜像
 FROM python:3.9-slim
 # 安装基础依赖和工具
-RUN apt-get update && apt-get install -y cron tzdata curl nodejs && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends cron curl tzdata \
+    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
 ENV TZ Asia/Shanghai
 # 复制所有项目文件
 COPY . /app/
