@@ -11,11 +11,12 @@ COPY . /app/
 WORKDIR /app/cinema_scrapy
 RUN pip install scrapy \
     && SCRAPY_PATH=$(which scrapy) \
-    && echo "0 2 * * * cd /app/cinema_scrapy && $SCRAPY_PATH crawl movie 2>> /var/log/cron.log" > /etc/cron.d/cinema-cron \
-    && echo "30 2 * * * cd /app/cinema_scrapy && $SCRAPY_PATH crawl tvshow 2>> /var/log/cron.log" >> /etc/cron.d/cinema-cron \
+    && echo "0 2 * * * cd /app/cinema_scrapy && $SCRAPY_PATH crawl movie 2>> /var/log/movie_cron.log" > /etc/cron.d/cinema-cron \
+    && echo "30 2 * * * cd /app/cinema_scrapy && $SCRAPY_PATH crawl tvshow 2>> /var/log/tvshow_cron.log" >> /etc/cron.d/cinema-cron \
     && chmod 0644 /etc/cron.d/cinema-cron \
     && crontab /etc/cron.d/cinema-cron \
-    && touch /var/log/cron.log
+    && touch /var/log/movie_cron.log \
+    && touch /var/log/tvshow_cron.log
 # 配置cinema_server
 WORKDIR /app/cinema_server
 RUN pip install -r requirements.txt && pip install gunicorn
@@ -29,10 +30,8 @@ RUN echo '#!/bin/bash\n\
 /etc/init.d/cron start\n\
 # 启动Flask应用\n\
 cd /app/cinema_server && gunicorn -w 4 -b 0.0.0.0:7000 app:app &\n\
-# 启动前端服务\n\
-cd /app/cinema_frontend && serve -l 7001 -s build &\n\
-# 保持容器运行\n\
-tail -f /var/log/cron.log\n\
+# 启动前端服务并保持容器运行\n\
+cd /app/cinema_frontend && serve -l 7001 -s build\n\
 ' > /app/start.sh \
     && chmod +x /app/start.sh
 # 暴露端口
