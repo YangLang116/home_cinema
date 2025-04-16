@@ -11,7 +11,6 @@ import {
   Divider,
   Button,
   CircularProgress,
-  useMediaQuery,
   Accordion,
   AccordionSummary,
   AccordionDetails,
@@ -20,15 +19,17 @@ import {
   Fade,
   Tooltip,
   Snackbar,
-  Alert
+  Alert,
+  Checkbox,
+  FormControlLabel
 } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DownloadIcon from '@mui/icons-material/Download';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import SelectAllIcon from '@mui/icons-material/SelectAll';
 import { Movie, TvShow, MediaType } from '../types';
 import { searchMovie, searchTvShow, getProxiedCoverUrl } from '../services/api';
 import { GridContainer, GridItem } from '../components/GridWrapper';
@@ -60,7 +61,7 @@ function groupEpisodes(episodes: { name: string; link: string }[]) {
     const seasonRegex = /[sS](\d+)|第(\d+)季/;
     const match = episode.name.match(seasonRegex);
 
-    let season = '其他';
+    let season = '剧集';
     if (match) {
       season = `第${match[1] || match[2]}季`;
     }
@@ -88,8 +89,8 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [selectedEpisodes, setSelectedEpisodes] = useState<Record<string, boolean>>({});
+  const [selectionMode, setSelectionMode] = useState(false);
 
   // 获取媒体详情
   useEffect(() => {
@@ -151,6 +152,68 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
       clipboardRef.current?.destroy();
     };
   }, []);
+
+  // 处理选择/取消选择单个剧集
+  const handleToggleEpisode = (episodeId: string) => {
+    setSelectedEpisodes(prev => ({
+      ...prev,
+      [episodeId]: !prev[episodeId]
+    }));
+  };
+
+  // 处理选择/取消选择整季剧集
+  const handleToggleSeason = (episodes: { name: string; link: string }[]) => {
+    const episodeIds = episodes.map(ep => ep.link); // 使用链接作为ID
+    const allSelected = episodeIds.every(id => selectedEpisodes[id]);
+    
+    const newSelectedEpisodes = { ...selectedEpisodes };
+    
+    // 如果全部已选中，则取消全部；否则选中全部
+    episodeIds.forEach(id => {
+      newSelectedEpisodes[id] = !allSelected;
+    });
+    
+    setSelectedEpisodes(newSelectedEpisodes);
+  };
+
+  // 全选/取消全选
+  const handleSelectAll = () => {
+    if (!media || !isTvShow(media)) return;
+    
+    const allEpisodeIds = media.download_link.map(ep => ep.link);
+    const allSelected = allEpisodeIds.every(id => selectedEpisodes[id]);
+    
+    const newSelectedEpisodes: Record<string, boolean> = {};
+    
+    // 如果全部已选中，则取消全部；否则选中全部
+    allEpisodeIds.forEach(id => {
+      newSelectedEpisodes[id] = !allSelected;
+    });
+    
+    setSelectedEpisodes(newSelectedEpisodes);
+  };
+
+  // 下载选中的剧集
+  const handleDownloadSelected = () => {
+    if (!media || !isTvShow(media)) return;
+    
+    const selectedLinks = media.download_link
+      .filter(episode => selectedEpisodes[episode.link])
+      .map(episode => episode.link)
+      .join('\n');
+    
+    if (selectedLinks) {
+      copyText(selectedLinks);
+      showSnackbar(`已复制${Object.values(selectedEpisodes).filter(Boolean).length}个下载链接`, 'success');
+    } else {
+      showSnackbar('请先选择要下载的剧集', 'error');
+    }
+  };
+
+  // 获取已选择的剧集数量
+  const getSelectedCount = () => {
+    return Object.values(selectedEpisodes).filter(Boolean).length;
+  };
 
   // 复制所有下载链接
   const handleCopyAllLinks = () => {
@@ -520,18 +583,62 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
                         <Typography variant="h6">
                           剧集下载
                         </Typography>
-                        <Tooltip title="复制所有下载链接">
-                          <Button
-                            variant="outlined"
-                            color="primary"
-                            size="small"
-                            startIcon={<ContentCopyIcon />}
-                            onClick={handleCopyAllLinks}
-                            sx={{ borderRadius: 2 }}
-                          >
-                            一键复制全部
-                          </Button>
-                        </Tooltip>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <FormControlLabel
+                            control={
+                              <Checkbox 
+                                checked={selectionMode}
+                                onChange={() => setSelectionMode(!selectionMode)}
+                                color="primary"
+                                size="small"
+                              />
+                            }
+                            label="多选模式"
+                          />
+                          {selectionMode && (
+                            <>
+                              <Tooltip title="全选/取消全选">
+                                <Button
+                                  variant="outlined"
+                                  color="primary"
+                                  size="small"
+                                  startIcon={<SelectAllIcon />}
+                                  onClick={handleSelectAll}
+                                  sx={{ borderRadius: 2 }}
+                                >
+                                  全选/取消
+                                </Button>
+                              </Tooltip>
+                              <Tooltip title="复制选中的下载链接">
+                                <Button
+                                  variant="contained"
+                                  color="primary"
+                                  size="small"
+                                  startIcon={<DownloadIcon />}
+                                  onClick={handleDownloadSelected}
+                                  disabled={getSelectedCount() === 0}
+                                  sx={{ borderRadius: 2 }}
+                                >
+                                  下载选中({getSelectedCount()})
+                                </Button>
+                              </Tooltip>
+                            </>
+                          )}
+                          {!selectionMode && (
+                            <Tooltip title="复制所有下载链接">
+                              <Button
+                                variant="outlined"
+                                color="primary"
+                                size="small"
+                                startIcon={<ContentCopyIcon />}
+                                onClick={handleCopyAllLinks}
+                                sx={{ borderRadius: 2 }}
+                              >
+                                一键复制全部
+                              </Button>
+                            </Tooltip>
+                          )}
+                        </Box>
                       </Box>
 
                       {media.download_link.length > 10 ? (
@@ -541,44 +648,68 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
                             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                               <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
                                 <Typography>{season} ({episodes.length}集)</Typography>
-                                <Tooltip title={`复制${season}所有链接`}>
-                                  <IconButton
-                                    size="small"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      const seasonLinks = episodes
-                                        .map(episode => episode.link)
-                                        .join('\n');
-                                      copyText(seasonLinks);
-                                    }}
-                                    sx={{ mr: 2 }}
-                                  >
-                                    <ContentCopyIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
+                                <Box sx={{ display: 'flex', alignItems: 'center', mr: 2 }}>
+                                  {selectionMode && (
+                                    <Checkbox
+                                      checked={episodes.every(ep => selectedEpisodes[ep.link])}
+                                      indeterminate={
+                                        episodes.some(ep => selectedEpisodes[ep.link]) && 
+                                        !episodes.every(ep => selectedEpisodes[ep.link])
+                                      }
+                                      onChange={() => handleToggleSeason(episodes)}
+                                      onClick={(e) => e.stopPropagation()}
+                                      size="small"
+                                    />
+                                  )}
+                                  {!selectionMode && (
+                                    <Tooltip title={`复制${season}所有链接`}>
+                                      <IconButton
+                                        size="small"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          const seasonLinks = episodes
+                                            .map(episode => episode.link)
+                                            .join('\n');
+                                          copyText(seasonLinks);
+                                        }}
+                                      >
+                                        <ContentCopyIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                  )}
+                                </Box>
                               </Box>
                             </AccordionSummary>
                             <AccordionDetails>
                               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }, gap: 1 }}>
                                 {episodes.map((episode, index) => (
-                                  <Button
-                                    key={index}
-                                    variant="outlined"
-                                    color="primary"
-                                    size="small"
-                                    startIcon={<DownloadIcon />}
-                                    onClick={() => copyText(episode.link)}
-                                    sx={{
-                                      borderRadius: 2,
-                                      justifyContent: 'flex-start',
-                                      textAlign: 'left',
-                                      whiteSpace: 'nowrap',
-                                      overflow: 'hidden',
-                                      textOverflow: 'ellipsis'
-                                    }}
-                                  >
-                                    {episode.name}
-                                  </Button>
+                                  <Box key={index} sx={{ display: 'flex', alignItems: 'center' }}>
+                                    {selectionMode && (
+                                      <Checkbox
+                                        checked={!!selectedEpisodes[episode.link]}
+                                        onChange={() => handleToggleEpisode(episode.link)}
+                                        size="small"
+                                      />
+                                    )}
+                                    <Button
+                                      variant="outlined"
+                                      color="primary"
+                                      size="small"
+                                      startIcon={<DownloadIcon />}
+                                      onClick={() => selectionMode ? handleToggleEpisode(episode.link) : copyText(episode.link)}
+                                      sx={{
+                                        borderRadius: 2,
+                                        justifyContent: 'flex-start',
+                                        textAlign: 'left',
+                                        whiteSpace: 'nowrap',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        flex: 1
+                                      }}
+                                    >
+                                      {episode.name}
+                                    </Button>
+                                  </Box>
                                 ))}
                               </Box>
                             </AccordionDetails>
@@ -588,16 +719,24 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
                         // 当剧集数量较少时，直接显示按钮列表
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                           {media.download_link.map((episode, index) => (
-                            <Button
-                              key={index}
-                              variant="outlined"
-                              color="primary"
-                              startIcon={<DownloadIcon />}
-                              onClick={() => copyText(episode.link)}
-                              sx={{ borderRadius: 2, justifyContent: 'flex-start' }}
-                            >
-                              {episode.name}
-                            </Button>
+                            <Box key={index} sx={{ display: 'flex', alignItems: 'center' }}>
+                              {selectionMode && (
+                                <Checkbox
+                                  checked={!!selectedEpisodes[episode.link]}
+                                  onChange={() => handleToggleEpisode(episode.link)}
+                                  size="small"
+                                />
+                              )}
+                              <Button
+                                variant="outlined"
+                                color="primary"
+                                startIcon={<DownloadIcon />}
+                                onClick={() => selectionMode ? handleToggleEpisode(episode.link) : copyText(episode.link)}
+                                sx={{ borderRadius: 2, justifyContent: 'flex-start', flex: 1 }}
+                              >
+                                {episode.name}
+                              </Button>
+                            </Box>
                           ))}
                         </Box>
                       )}
