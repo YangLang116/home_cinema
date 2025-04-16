@@ -13,6 +13,7 @@ def __backup_data__(db_name):
     backup_name = f"{os.path.splitext(db_name)[0]}_{current_date}.db"
     backup_path = os.path.join(backup_dir, backup_name)
     shutil.copy2(os.path.join(project_dir, db_name), backup_path)
+    print(f"备份文件已保存到: {backup_path}")
 
 # 发送数据到服务器
 def __send_data_to_server__(db_name):
@@ -20,6 +21,7 @@ def __send_data_to_server__(db_name):
     server_dir = os.path.join(os.path.dirname(project_dir), "cinema_server")
     target_path = os.path.join(server_dir, db_name)
     shutil.copy2(os.path.join(project_dir, db_name), target_path)
+    print(f"数据已发送至服务器: {target_path}")
 
 def sync_db(db_name):
     __backup_data__(db_name)

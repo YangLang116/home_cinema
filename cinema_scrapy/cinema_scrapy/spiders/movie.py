@@ -79,3 +79,4 @@ class MovieSpider(scrapy.Spider):
 
     def closed(self, reason):
         sync_db("movie.db")
+        print(f"Spider {self.name} closed with reason: {reason}")
