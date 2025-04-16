@@ -50,6 +50,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         placeholder={placeholder}
         variant="outlined"
         size={isMobile ? 'small' : 'medium'}
+        autoComplete="off"
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
@@ -75,6 +76,13 @@ const SearchBar: React.FC<SearchBarProps> = ({
               boxShadow: '0 0 8px rgba(0, 180, 216, 0.8)',
             },
           },
+          inputProps: {
+            autoComplete: "off",
+            onDoubleClick: (e: React.MouseEvent<HTMLInputElement>) => {
+              e.preventDefault();
+              return false;
+            }
+          }
         }}
       />
     </Box>

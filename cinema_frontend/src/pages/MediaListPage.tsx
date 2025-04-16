@@ -225,6 +225,7 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
                 placeholder="搜索..."
                 variant="outlined"
                 size="small"
+                autoComplete="off"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -237,7 +238,14 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
                         <ClearIcon />
                       </IconButton>
                     </InputAdornment>
-                  )
+                  ),
+                  inputProps: {
+                    autoComplete: "off",
+                    onDoubleClick: (e: React.MouseEvent<HTMLInputElement>) => {
+                      e.preventDefault();
+                      return false;
+                    }
+                  }
                 }}
                 sx={{ width: 300 }}
               />
