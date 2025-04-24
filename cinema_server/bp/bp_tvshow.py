@@ -1,6 +1,6 @@
 import json
 from flask import Blueprint, request, jsonify, make_response
-from utils.tools import get_page_data, get_search_data, get_all_areas
+from utils.tools import get_page_data, get_search_data, get_all_areas, get_all_categories
 
 __db__ = "tvshow.db"
 
@@ -15,7 +15,8 @@ def get_tvshows():
     sort_by = request.args.get("sort_by", "time")
     sort_order = request.args.get("sort_order", "desc")
     area = request.args.get("area", "")
-    data_list = get_page_data(__db__, page, per_page, sort_by, sort_order, area)
+    category = request.args.get("category", "")
+    data_list = get_page_data(__db__, page, per_page, sort_by, sort_order, area, category)
     return __format_data__(data_list)
 
 
@@ -32,6 +33,15 @@ def search_tvshows():
 def get_tvshow_areas():
     areas = get_all_areas(__db__)
     response = make_response(jsonify({"data": areas}))
+    response.headers["Content-Type"] = "application/json"
+    return response
+
+
+# 获取所有电视剧分类
+@bp_tvshow.route("/categories", methods=["GET"])
+def get_tvshow_categories():
+    categories = get_all_categories(__db__)
+    response = make_response(jsonify({"data": categories}))
     response.headers["Content-Type"] = "application/json"
     return response
 

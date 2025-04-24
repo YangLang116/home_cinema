@@ -27,7 +27,8 @@ import {
   SortByAlpha as SortIcon,
   AccessTime as TimeIcon,
   Star as StarIcon,
-  Public as PublicIcon
+  Public as PublicIcon,
+  Category as CategoryIcon
 } from '@mui/icons-material';
 import MediaCard from '../components/MediaCard';
 import { useMedia } from '../hooks/useMedia';
@@ -107,7 +108,11 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
     areas,
     areasLoading,
     areaConfig,
-    handleAreaChange
+    handleAreaChange,
+    categories,
+    categoriesLoading,
+    categoryConfig,
+    handleCategoryChange
   } = useMedia({ type });
   const [searchText, setSearchText] = useState('');
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -159,6 +164,13 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
     }
   }, [handleAreaChange, areaConfig.area]);
 
+  const handleCategorySelectChange = useCallback((event: SelectChangeEvent) => {
+    const newValue = event.target.value;
+    if (newValue !== categoryConfig.category) {
+      handleCategoryChange({ category: newValue });
+    }
+  }, [handleCategoryChange, categoryConfig.category]);
+
   const scrollToTop = useCallback(() => {
     window.scrollTo({
       top: 0,
@@ -192,110 +204,200 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
             {title}
           </Typography>
           
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
-            {/* 排序控制 */}
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
-              <FormControl variant="outlined" size="small" sx={{ minWidth: 150 }}>
-                <InputLabel id="sort-by-label">排序字段</InputLabel>
-                <Select
-                  labelId="sort-by-label"
-                  id="sort-by"
-                  value={sortConfig.sort_by}
-                  onChange={handleSortByChange}
-                  label="排序字段"
-                  startAdornment={
-                    sortConfig.sort_by === 'time' ? 
-                    <TimeIcon sx={{ mr: 1, color: 'primary.main' }} /> : 
-                    <StarIcon sx={{ mr: 1, color: 'primary.main' }} />
+          <Stack direction="column" spacing={2} alignItems="flex-start" width={{ xs: '100%', sm: 'auto' }}>
+            {/* 排序控制 - 移动端使用水平滚动容器 */}
+            <Box 
+              sx={{ 
+                width: '100%', 
+                overflowX: 'auto', 
+                WebkitOverflowScrolling: 'touch',
+                '&::-webkit-scrollbar': {
+                  height: '4px',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                  borderRadius: '4px',
+                }
+              }}
+            >
+              <Stack 
+                direction="row" 
+                spacing={1} 
+                alignItems="center" 
+                sx={{ 
+                  py: 1, 
+                  minWidth: { xs: 'min-content' },
+                  '& .MuiFormControl-root': {
+                    minWidth: { xs: 110, sm: 120 }
                   }
-                >
-                  <MenuItem value="time">上映时间</MenuItem>
-                  <MenuItem value="score">评分</MenuItem>
-                </Select>
-              </FormControl>
-              
-              <FormControl variant="outlined" size="small" sx={{ minWidth: 120 }}>
-                <InputLabel id="sort-order-label">排序方向</InputLabel>
-                <Select
-                  labelId="sort-order-label"
-                  id="sort-order"
-                  value={sortConfig.sort_order}
-                  onChange={handleSortOrderChange}
-                  label="排序方向"
-                  startAdornment={<SortIcon sx={{ mr: 1, color: 'primary.main' }} />}
-                >
-                  <MenuItem value="desc">降序</MenuItem>
-                  <MenuItem value="asc">升序</MenuItem>
-                </Select>
-              </FormControl>
-
-              {/* 区域筛选下拉列表 */}
-              <FormControl variant="outlined" size="small" sx={{ minWidth: 120 }}>
-                <InputLabel id="area-label">国家/地区</InputLabel>
-                <Select
-                  labelId="area-label"
-                  id="area"
-                  value={areaConfig.area}
-                  onChange={handleAreaSelectChange}
-                  label="国家/地区"
-                  startAdornment={<PublicIcon sx={{ mr: 1, color: 'primary.main' }} />}
-                  disabled={areasLoading}
-                  displayEmpty
-                  MenuProps={{
-                    PaperProps: {
-                      style: {
-                        maxHeight: 400,
-                      }
+                }}
+              >
+                <FormControl variant="outlined" size="small">
+                  <InputLabel id="sort-by-label">排序字段</InputLabel>
+                  <Select
+                    labelId="sort-by-label"
+                    id="sort-by"
+                    value={sortConfig.sort_by}
+                    onChange={handleSortByChange}
+                    label="排序字段"
+                    startAdornment={
+                      sortConfig.sort_by === 'time' ? 
+                      <TimeIcon sx={{ mr: 1, color: 'primary.main' }} /> : 
+                      <StarIcon sx={{ mr: 1, color: 'primary.main' }} />
                     }
-                  }}
-                >
-                  {/* 全部选项 */}
-                  <MenuItem 
-                    value="" 
-                    sx={{ 
-                      fontWeight: !areaConfig.area ? 'bold' : 'normal',
-                      bgcolor: !areaConfig.area ? 'rgba(0, 180, 216, 0.08)' : 'inherit'
+                  >
+                    <MenuItem value="time">上映时间</MenuItem>
+                    <MenuItem value="score">评分</MenuItem>
+                  </Select>
+                </FormControl>
+                
+                <FormControl variant="outlined" size="small">
+                  <InputLabel id="sort-order-label">排序方向</InputLabel>
+                  <Select
+                    labelId="sort-order-label"
+                    id="sort-order"
+                    value={sortConfig.sort_order}
+                    onChange={handleSortOrderChange}
+                    label="排序方向"
+                    startAdornment={<SortIcon sx={{ mr: 1, color: 'primary.main' }} />}
+                  >
+                    <MenuItem value="desc">降序</MenuItem>
+                    <MenuItem value="asc">升序</MenuItem>
+                  </Select>
+                </FormControl>
+
+                {/* 区域筛选下拉列表 */}
+                <FormControl variant="outlined" size="small">
+                  <InputLabel id="area-label">地区</InputLabel>
+                  <Select
+                    labelId="area-label"
+                    id="area"
+                    value={areaConfig.area}
+                    onChange={handleAreaSelectChange}
+                    label="地区"
+                    startAdornment={<PublicIcon sx={{ mr: 1, color: 'primary.main' }} />}
+                    disabled={areasLoading}
+                    displayEmpty
+                    MenuProps={{
+                      PaperProps: {
+                        style: {
+                          maxHeight: 400,
+                        }
+                      }
                     }}
                   >
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      {!areaConfig.area && (
-                        <Box 
-                          component="span" 
-                          sx={{ 
-                            width: 8, 
-                            height: 8, 
-                            bgcolor: 'primary.main', 
-                            borderRadius: '50%', 
-                            mr: 1, 
-                            display: 'inline-block' 
-                          }} 
-                        />
-                      )}
-                      全部
-                    </Box>
-                  </MenuItem>
-                  
-                  <Divider />
-                  
-                  {/* 直接显示所有区域，不分组，但按字母顺序排序 */}
-                  {[...areas].sort().map((area) => (
+                    {/* 全部选项 */}
                     <MenuItem 
-                      key={area} 
-                      value={area}
+                      value="" 
                       sx={{ 
-                        fontWeight: areaConfig.area === area ? 'bold' : 'normal',
-                        bgcolor: areaConfig.area === area ? 'rgba(0, 180, 216, 0.08)' : 'inherit'
+                        fontWeight: !areaConfig.area ? 'bold' : 'normal',
+                        bgcolor: !areaConfig.area ? 'rgba(0, 180, 216, 0.08)' : 'inherit'
                       }}
                     >
-                      {area}
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        {!areaConfig.area && (
+                          <Box 
+                            component="span" 
+                            sx={{ 
+                              width: 8, 
+                              height: 8, 
+                              bgcolor: 'primary.main', 
+                              borderRadius: '50%', 
+                              mr: 1, 
+                              display: 'inline-block' 
+                            }} 
+                          />
+                        )}
+                        全部
+                      </Box>
                     </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Stack>
+                    
+                    <Divider />
+                    
+                    {/* 直接显示所有区域，不分组，但按字母顺序排序 */}
+                    {[...areas].sort().map((area) => (
+                      <MenuItem 
+                        key={area} 
+                        value={area}
+                        sx={{ 
+                          fontWeight: areaConfig.area === area ? 'bold' : 'normal',
+                          bgcolor: areaConfig.area === area ? 'rgba(0, 180, 216, 0.08)' : 'inherit'
+                        }}
+                      >
+                        {area}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                {/* 类别筛选下拉列表 */}
+                <FormControl variant="outlined" size="small">
+                  <InputLabel id="category-label">类别</InputLabel>
+                  <Select
+                    labelId="category-label"
+                    id="category"
+                    value={categoryConfig.category}
+                    onChange={handleCategorySelectChange}
+                    label="类别"
+                    startAdornment={<CategoryIcon sx={{ mr: 1, color: 'primary.main' }} />}
+                    disabled={categoriesLoading}
+                    displayEmpty
+                    MenuProps={{
+                      PaperProps: {
+                        style: {
+                          maxHeight: 400,
+                        }
+                      }
+                    }}
+                  >
+                    {/* 全部选项 */}
+                    <MenuItem 
+                      value="" 
+                      sx={{ 
+                        fontWeight: !categoryConfig.category ? 'bold' : 'normal',
+                        bgcolor: !categoryConfig.category ? 'rgba(0, 180, 216, 0.08)' : 'inherit'
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        {!categoryConfig.category && (
+                          <Box 
+                            component="span" 
+                            sx={{ 
+                              width: 8, 
+                              height: 8, 
+                              bgcolor: 'primary.main', 
+                              borderRadius: '50%', 
+                              mr: 1, 
+                              display: 'inline-block' 
+                            }} 
+                          />
+                        )}
+                        全部
+                      </Box>
+                    </MenuItem>
+                    
+                    <Divider />
+                    
+                    {/* 直接显示所有类别，按字母顺序排序 */}
+                    {[...categories].sort().map((category) => (
+                      <MenuItem 
+                        key={category} 
+                        value={category}
+                        sx={{ 
+                          fontWeight: categoryConfig.category === category ? 'bold' : 'normal',
+                          bgcolor: categoryConfig.category === category ? 'rgba(0, 180, 216, 0.08)' : 'inherit'
+                        }}
+                      >
+                        {category}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Stack>
+            </Box>
           
             {/* 搜索框 */}
-            <Box component="form" onSubmit={handleSearchSubmit} sx={{ display: 'flex', alignItems: 'center' }}>
+            <Box component="form" onSubmit={handleSearchSubmit} sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
               <TextField
                 value={searchText}
                 onChange={handleSearchInputChange}
@@ -324,7 +426,7 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
                     }
                   }
                 }}
-                sx={{ width: 300 }}
+                sx={{ width: '100%' }}
               />
             </Box>
           </Stack>
@@ -381,7 +483,12 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
         {!loading && data.length === 0 && (
           <Box sx={{ textAlign: 'center', py: 8 }}>
             <Typography variant="h6" color="textSecondary">
-              {searchQuery ? '没有找到匹配的结果' : areaConfig.area ? `没有找到${areaConfig.area}的内容` : '暂无数据'}
+              {searchQuery 
+                ? '没有找到匹配的结果' 
+                : (areaConfig.area || categoryConfig.category) 
+                  ? `没有找到符合条件的内容` 
+                  : '暂无数据'
+              }
             </Typography>
           </Box>
         )}

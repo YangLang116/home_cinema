@@ -44,15 +44,16 @@ def __get_data_from_db(db, sql, args):
             conn.close()
 
 
-def get_page_data(db, page, per_page, sort_by="time", sort_order="desc", area=""):
+def get_page_data(db, page, per_page, sort_by="time", sort_order="desc", area="", category=""):
     """
-    获取分页数据，支持排序和按地区筛选
+    获取分页数据，支持排序和按地区、分类筛选
     :param db: 数据库文件
     :param page: 页码
     :param per_page: 每页条数
     :param sort_by: 排序字段,可选值:time(发布时间)、score(评分)
     :param sort_order: 排序方向,可选值:asc(升序)、desc(降序)
     :param area: 地区筛选,为空时不筛选，支持模糊匹配
+    :param category: 分类筛选,为空时不筛选，支持模糊匹配
     :return: 数据列表
     """
     offset = (page - 1) * per_page
@@ -64,10 +65,22 @@ def get_page_data(db, page, per_page, sort_by="time", sort_order="desc", area=""
     order_direction = "DESC" if sort_order == "desc" else "ASC"
     
     # 构建查询条件
+    conditions = []
+    params = []
+    
     if area:
-        # 使用LIKE进行模糊匹配
-        sql = f"SELECT * FROM media WHERE area LIKE ? ORDER BY {order_column} {order_direction} LIMIT ? OFFSET ?"
-        return __get_data_from_db(db, sql, (f"%{area}%", per_page, offset))
+        conditions.append("area LIKE ?")
+        params.append(f"%{area}%")
+    
+    if category:
+        conditions.append("category LIKE ?")
+        params.append(f"%{category}%")
+    
+    if conditions:
+        where_clause = " AND ".join(conditions)
+        sql = f"SELECT * FROM media WHERE {where_clause} ORDER BY {order_column} {order_direction} LIMIT ? OFFSET ?"
+        params.extend([per_page, offset])
+        return __get_data_from_db(db, sql, tuple(params))
     else:
         sql = f"SELECT * FROM media ORDER BY {order_column} {order_direction} LIMIT ? OFFSET ?"
         return __get_data_from_db(db, sql, (per_page, offset))
@@ -106,6 +119,39 @@ def get_all_areas(db):
         return unique_areas
     except sqlite3.Error as e:
         print(f"get areas error: {str(e)}")
+        return []
+    finally:
+        if conn:
+            conn.close()
+
+
+def get_all_categories(db):
+    """
+    获取数据库中所有的分类集合
+    :param db: 数据库文件
+    :return: 唯一分类列表
+    """
+    conn = None
+    try:
+        conn = __connect_movie_db(db)
+        cursor = conn.cursor()
+        cursor.execute("SELECT DISTINCT category FROM media WHERE category IS NOT NULL AND category != ''")
+        
+        # 处理复合分类，如"剧情, 动作"
+        all_categories = []
+        for row in cursor.fetchall():
+            # 按", "分割复合分类
+            if row[0] and ", " in row[0]:
+                categories = row[0].split(", ")
+                all_categories.extend(categories)
+            else:
+                all_categories.append(row[0])
+        
+        # 去重并排序
+        unique_categories = sorted(list(set(all_categories)))
+        return unique_categories
+    except sqlite3.Error as e:
+        print(f"get categories error: {str(e)}")
         return []
     finally:
         if conn:
