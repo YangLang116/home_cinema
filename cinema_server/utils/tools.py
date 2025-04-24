@@ -44,14 +44,15 @@ def __get_data_from_db(db, sql, args):
             conn.close()
 
 
-def get_page_data(db, page, per_page, sort_by="time", sort_order="desc"):
+def get_page_data(db, page, per_page, sort_by="time", sort_order="desc", area=""):
     """
-    获取分页数据，支持排序
+    获取分页数据，支持排序和按地区筛选
     :param db: 数据库文件
     :param page: 页码
     :param per_page: 每页条数
     :param sort_by: 排序字段,可选值:time(发布时间)、score(评分)
     :param sort_order: 排序方向,可选值:asc(升序)、desc(降序)
+    :param area: 地区筛选,为空时不筛选
     :return: 数据列表
     """
     offset = (page - 1) * per_page
@@ -61,8 +62,14 @@ def get_page_data(db, page, per_page, sort_by="time", sort_order="desc"):
         sort_order = "desc"
     order_column = "release_date" if sort_by == "time" else "score"
     order_direction = "DESC" if sort_order == "desc" else "ASC"
-    sql = f"SELECT * FROM media ORDER BY {order_column} {order_direction} LIMIT ? OFFSET ?"
-    return __get_data_from_db(db, sql, (per_page, offset))
+    
+    # 构建查询条件
+    if area:
+        sql = f"SELECT * FROM media WHERE area = ? ORDER BY {order_column} {order_direction} LIMIT ? OFFSET ?"
+        return __get_data_from_db(db, sql, (area, per_page, offset))
+    else:
+        sql = f"SELECT * FROM media ORDER BY {order_column} {order_direction} LIMIT ? OFFSET ?"
+        return __get_data_from_db(db, sql, (per_page, offset))
 
 
 def get_search_data(db, name):

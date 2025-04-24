@@ -14,7 +14,8 @@ def get_movies():
     per_page = int(request.args.get("count", 10))
     sort_by = request.args.get("sort_by", "time")
     sort_order = request.args.get("sort_order", "desc") 
-    data_list = get_page_data(__db__, page, per_page, sort_by, sort_order)
+    area = request.args.get("area", "")
+    data_list = get_page_data(__db__, page, per_page, sort_by, sort_order, area)
     return __format_data__(data_list)
 
 
