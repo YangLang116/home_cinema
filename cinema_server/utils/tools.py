@@ -52,7 +52,7 @@ def get_page_data(db, page, per_page, sort_by="time", sort_order="desc", area=""
     :param per_page: 每页条数
     :param sort_by: 排序字段,可选值:time(发布时间)、score(评分)
     :param sort_order: 排序方向,可选值:asc(升序)、desc(降序)
-    :param area: 地区筛选,为空时不筛选
+    :param area: 地区筛选,为空时不筛选，支持模糊匹配
     :return: 数据列表
     """
     offset = (page - 1) * per_page
@@ -65,8 +65,9 @@ def get_page_data(db, page, per_page, sort_by="time", sort_order="desc", area=""
     
     # 构建查询条件
     if area:
-        sql = f"SELECT * FROM media WHERE area = ? ORDER BY {order_column} {order_direction} LIMIT ? OFFSET ?"
-        return __get_data_from_db(db, sql, (area, per_page, offset))
+        # 使用LIKE进行模糊匹配
+        sql = f"SELECT * FROM media WHERE area LIKE ? ORDER BY {order_column} {order_direction} LIMIT ? OFFSET ?"
+        return __get_data_from_db(db, sql, (f"%{area}%", per_page, offset))
     else:
         sql = f"SELECT * FROM media ORDER BY {order_column} {order_direction} LIMIT ? OFFSET ?"
         return __get_data_from_db(db, sql, (per_page, offset))
@@ -76,3 +77,36 @@ def get_search_data(db, name):
     return __get_data_from_db(
         db, "SELECT * FROM media WHERE name LIKE ?", (f"%{name}%",)
     )
+
+
+def get_all_areas(db):
+    """
+    获取数据库中所有的地区集合
+    :param db: 数据库文件
+    :return: 唯一地区列表
+    """
+    conn = None
+    try:
+        conn = __connect_movie_db(db)
+        cursor = conn.cursor()
+        cursor.execute("SELECT DISTINCT area FROM media WHERE area IS NOT NULL AND area != ''")
+        
+        # 处理复合地区，如"中国台湾, 新加坡"
+        all_areas = []
+        for row in cursor.fetchall():
+            # 按", "分割复合地区
+            if row[0] and ", " in row[0]:
+                areas = row[0].split(", ")
+                all_areas.extend(areas)
+            else:
+                all_areas.append(row[0])
+        
+        # 去重并排序
+        unique_areas = sorted(list(set(all_areas)))
+        return unique_areas
+    except sqlite3.Error as e:
+        print(f"get areas error: {str(e)}")
+        return []
+    finally:
+        if conn:
+            conn.close()

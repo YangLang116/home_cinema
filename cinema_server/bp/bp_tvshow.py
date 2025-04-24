@@ -1,6 +1,6 @@
 import json
 from flask import Blueprint, request, jsonify, make_response
-from utils.tools import get_page_data, get_search_data
+from utils.tools import get_page_data, get_search_data, get_all_areas
 
 __db__ = "tvshow.db"
 
@@ -25,6 +25,15 @@ def search_tvshows():
     name = request.args.get("name")
     data_list = get_search_data(__db__, name)
     return __format_data__(data_list)
+
+
+# 获取所有电视剧地区
+@bp_tvshow.route("/areas", methods=["GET"])
+def get_tvshow_areas():
+    areas = get_all_areas(__db__)
+    response = make_response(jsonify({"data": areas}))
+    response.headers["Content-Type"] = "application/json"
+    return response
 
 
 def __format_data__(data_list):
