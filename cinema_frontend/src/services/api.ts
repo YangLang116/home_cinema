@@ -10,10 +10,10 @@ export const getProxiedCoverUrl = (coverUrl: string): string => {
 };
 
 // 电影相关API
-export const getMovieList = async ({ page, count, sort_by, sort_order }: PaginationParams): Promise<Movie[]> => {
+export const getMovieList = async ({ page, count, sort_by, sort_order, area }: PaginationParams): Promise<Movie[]> => {
   try {
     const response = await axios.get(`${BASE_URL}/movie/list`, {
-      params: { page, count, sort_by, sort_order }
+      params: { page, count, sort_by, sort_order, area }
     });
     return response.data;
   } catch (error) {
@@ -34,11 +34,21 @@ export const searchMovie = async ({ name }: SearchParams): Promise<Movie[]> => {
   }
 };
 
+export const getMovieAreas = async (): Promise<string[]> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/movie/areas`);
+    return response.data.data || [];
+  } catch (error) {
+    console.error('获取电影区域列表失败', error);
+    return [];
+  }
+};
+
 // 电视剧相关API
-export const getTvShowList = async ({ page, count, sort_by, sort_order }: PaginationParams): Promise<TvShow[]> => {
+export const getTvShowList = async ({ page, count, sort_by, sort_order, area }: PaginationParams): Promise<TvShow[]> => {
   try {
     const response = await axios.get(`${BASE_URL}/tvshow/list`, {
-      params: { page, count, sort_by, sort_order }
+      params: { page, count, sort_by, sort_order, area }
     });
     return response.data;
   } catch (error) {
@@ -55,6 +65,16 @@ export const searchTvShow = async ({ name }: SearchParams): Promise<TvShow[]> =>
     return response.data;
   } catch (error) {
     console.error('搜索电视剧失败', error);
+    return [];
+  }
+};
+
+export const getTvShowAreas = async (): Promise<string[]> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/tvshow/areas`);
+    return response.data.data || [];
+  } catch (error) {
+    console.error('获取电视剧区域列表失败', error);
     return [];
   }
 };

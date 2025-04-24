@@ -1,6 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Movie, TvShow, MediaType, SortByType, SortOrderType, SortConfig } from '../types';
-import { getMovieList, searchMovie, getTvShowList, searchTvShow, getProxiedCoverUrl } from '../services/api';
+import { Movie, TvShow, MediaType, SortByType, SortOrderType, SortConfig, AreaConfig } from '../types';
+import { 
+  getMovieList, 
+  searchMovie, 
+  getTvShowList, 
+  searchTvShow, 
+  getProxiedCoverUrl,
+  getMovieAreas,
+  getTvShowAreas
+} from '../services/api';
 
 // 处理媒体数据，将封面URL替换为代理URL
 function processMediaData<T extends Movie | TvShow>(data: T[]): T[] {
@@ -32,6 +40,11 @@ const DEFAULT_SORT_CONFIG: SortConfig = {
   sort_order: 'desc'
 };
 
+// 默认区域配置
+const DEFAULT_AREA_CONFIG: AreaConfig = {
+  area: ''
+};
+
 export const useMedia = ({ type, initialPage = 0, count = 20 }: UseMediaProps) => {
   const [data, setData] = useState<Movie[] | TvShow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -41,6 +54,9 @@ export const useMedia = ({ type, initialPage = 0, count = 20 }: UseMediaProps) =
   const [hasMore, setHasMore] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [sortConfig, setSortConfig] = useState<SortConfig>(DEFAULT_SORT_CONFIG);
+  const [areaConfig, setAreaConfig] = useState<AreaConfig>(DEFAULT_AREA_CONFIG);
+  const [areas, setAreas] = useState<string[]>([]);
+  const [areasLoading, setAreasLoading] = useState(false);
   
   // 使用ref来防止并发加载和检查是否已经加载了某个页码
   const loadingRef = useRef(false);
@@ -51,6 +67,29 @@ export const useMedia = ({ type, initialPage = 0, count = 20 }: UseMediaProps) =
   
   // 标记重新加载数据请求，避免在依赖项中直接使用sortConfig
   const shouldReloadRef = useRef(false);
+
+  // 获取区域列表
+  const fetchAreas = useCallback(async () => {
+    setAreasLoading(true);
+    try {
+      let areaList: string[] = [];
+      if (type === 'movie') {
+        areaList = await getMovieAreas();
+      } else {
+        areaList = await getTvShowAreas();
+      }
+      setAreas(areaList);
+    } catch (error) {
+      console.error('获取区域列表失败', error);
+    } finally {
+      setAreasLoading(false);
+    }
+  }, [type]);
+
+  // 当类型变化时获取相应的区域列表
+  useEffect(() => {
+    fetchAreas();
+  }, [type, fetchAreas]);
 
   const fetchData = useCallback(async (currentPage: number, append: boolean = false) => {
     // 如果已经加载过这个页码或者正在加载中，则直接返回
@@ -74,7 +113,8 @@ export const useMedia = ({ type, initialPage = 0, count = 20 }: UseMediaProps) =
           page: currentPage, 
           count,
           sort_by: sortConfig.sort_by,
-          sort_order: sortConfig.sort_order
+          sort_order: sortConfig.sort_order,
+          area: areaConfig.area
         });
         const processedResult = processMediaData<Movie>(result);
         
@@ -94,7 +134,8 @@ export const useMedia = ({ type, initialPage = 0, count = 20 }: UseMediaProps) =
           page: currentPage, 
           count,
           sort_by: sortConfig.sort_by,
-          sort_order: sortConfig.sort_order 
+          sort_order: sortConfig.sort_order,
+          area: areaConfig.area
         });
         const processedResult = processMediaData<TvShow>(result);
         
@@ -125,7 +166,7 @@ export const useMedia = ({ type, initialPage = 0, count = 20 }: UseMediaProps) =
       setLoading(false);
       loadingRef.current = false;
     }
-  }, [type, count, data, sortConfig]);
+  }, [type, count, data, sortConfig, areaConfig]);
 
   const handleSearch = useCallback(async (query: string) => {
     if (!query.trim()) {
@@ -170,20 +211,31 @@ export const useMedia = ({ type, initialPage = 0, count = 20 }: UseMediaProps) =
     }
   }, [fetchData, handleSearch, initialPage, searchQuery]);
 
-  // 初始加载和类型/搜索变化时
+  // 初始加载和类型/搜索/排序/区域变化时
   useEffect(() => {
     // 使用ref防止重复加载
-    const loadingKey = `${type}-${searchQuery}-${sortConfig.sort_by}-${sortConfig.sort_order}`;
+    const loadingKey = `${type}-${searchQuery}-${sortConfig.sort_by}-${sortConfig.sort_order}-${areaConfig.area}`;
     
     if (isInitialLoad && !loadingRef.current) {
       triggerDataLoad();
       setIsInitialLoad(false); // 加载后立即设置为false，防止下次依赖变更再次触发
     }
-  }, [isInitialLoad, triggerDataLoad, type, searchQuery, sortConfig]);
+  }, [isInitialLoad, triggerDataLoad, type, searchQuery, sortConfig, areaConfig]);
 
   // 处理排序变更
   const handleSortChange = useCallback((newSortConfig: Partial<SortConfig>) => {
     setSortConfig(prev => ({ ...prev, ...newSortConfig }));
+    setPage(0);
+    setData([]);
+    setHasMore(true);
+    setIsInitialLoad(true);
+    loadedPagesRef.current = new Set();
+    shouldReloadRef.current = true;
+  }, []);
+
+  // 处理区域变更
+  const handleAreaChange = useCallback((newAreaConfig: Partial<AreaConfig>) => {
+    setAreaConfig(prev => ({ ...prev, ...newAreaConfig }));
     setPage(0);
     setData([]);
     setHasMore(true);
@@ -227,6 +279,7 @@ export const useMedia = ({ type, initialPage = 0, count = 20 }: UseMediaProps) =
     setHasMore(true);
     setIsInitialLoad(true);
     setSortConfig(DEFAULT_SORT_CONFIG);
+    setAreaConfig(DEFAULT_AREA_CONFIG);
     loadedPagesRef.current = new Set([initialPage]);
     isPreloading.current = false;
   }, [type, initialPage]);
@@ -241,6 +294,10 @@ export const useMedia = ({ type, initialPage = 0, count = 20 }: UseMediaProps) =
     handleSearchChange,
     hasMore,
     sortConfig,
-    handleSortChange
+    handleSortChange,
+    areas,
+    areasLoading,
+    areaConfig,
+    handleAreaChange
   };
 }; 

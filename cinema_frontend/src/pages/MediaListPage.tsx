@@ -16,7 +16,8 @@ import {
   MenuItem,
   SelectChangeEvent,
   Stack,
-  useMediaQuery
+  useMediaQuery,
+  Divider
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { 
@@ -25,7 +26,8 @@ import {
   KeyboardArrowUp as KeyboardArrowUpIcon,
   SortByAlpha as SortIcon,
   AccessTime as TimeIcon,
-  Star as StarIcon
+  Star as StarIcon,
+  Public as PublicIcon
 } from '@mui/icons-material';
 import MediaCard from '../components/MediaCard';
 import { useMedia } from '../hooks/useMedia';
@@ -101,7 +103,11 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
     hasMore,
     sortConfig,
     handleSortChange,
-    page
+    page,
+    areas,
+    areasLoading,
+    areaConfig,
+    handleAreaChange
   } = useMedia({ type });
   const [searchText, setSearchText] = useState('');
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -146,6 +152,13 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
     }
   }, [handleSortChange, sortConfig.sort_order]);
 
+  const handleAreaSelectChange = useCallback((event: SelectChangeEvent) => {
+    const newValue = event.target.value;
+    if (newValue !== areaConfig.area) {
+      handleAreaChange({ area: newValue });
+    }
+  }, [handleAreaChange, areaConfig.area]);
+
   const scrollToTop = useCallback(() => {
     window.scrollTo({
       top: 0,
@@ -181,7 +194,7 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
           
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
             {/* 排序控制 */}
-            <Stack direction="row" spacing={2} alignItems="center">
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
               <FormControl variant="outlined" size="small" sx={{ minWidth: 150 }}>
                 <InputLabel id="sort-by-label">排序字段</InputLabel>
                 <Select
@@ -213,6 +226,70 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
                 >
                   <MenuItem value="desc">降序</MenuItem>
                   <MenuItem value="asc">升序</MenuItem>
+                </Select>
+              </FormControl>
+
+              {/* 区域筛选下拉列表 */}
+              <FormControl variant="outlined" size="small" sx={{ minWidth: 120 }}>
+                <InputLabel id="area-label">国家/地区</InputLabel>
+                <Select
+                  labelId="area-label"
+                  id="area"
+                  value={areaConfig.area}
+                  onChange={handleAreaSelectChange}
+                  label="国家/地区"
+                  startAdornment={<PublicIcon sx={{ mr: 1, color: 'primary.main' }} />}
+                  disabled={areasLoading}
+                  displayEmpty
+                  MenuProps={{
+                    PaperProps: {
+                      style: {
+                        maxHeight: 400,
+                      }
+                    }
+                  }}
+                >
+                  {/* 全部选项 */}
+                  <MenuItem 
+                    value="" 
+                    sx={{ 
+                      fontWeight: !areaConfig.area ? 'bold' : 'normal',
+                      bgcolor: !areaConfig.area ? 'rgba(0, 180, 216, 0.08)' : 'inherit'
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      {!areaConfig.area && (
+                        <Box 
+                          component="span" 
+                          sx={{ 
+                            width: 8, 
+                            height: 8, 
+                            bgcolor: 'primary.main', 
+                            borderRadius: '50%', 
+                            mr: 1, 
+                            display: 'inline-block' 
+                          }} 
+                        />
+                      )}
+                      全部
+                    </Box>
+                  </MenuItem>
+                  
+                  <Divider />
+                  
+                  {/* 直接显示所有区域，不分组，但按字母顺序排序 */}
+                  {[...areas].sort().map((area) => (
+                    <MenuItem 
+                      key={area} 
+                      value={area}
+                      sx={{ 
+                        fontWeight: areaConfig.area === area ? 'bold' : 'normal',
+                        bgcolor: areaConfig.area === area ? 'rgba(0, 180, 216, 0.08)' : 'inherit'
+                      }}
+                    >
+                      {area}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Stack>
@@ -261,7 +338,7 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
 
         <Grid container spacing={isMobile ? 1 : 3}>
           {data.map((media, index) => (
-            <Grid item xs={4} sm={6} md={4} lg={3} xl={2} key={`${media.name}-${index}`}>
+            <Grid item xs={6} sm={4} md={3} lg={2.4} xl={2} key={`${media.name}-${index}`}>
               <MediaCard media={media} type={type} />
             </Grid>
           ))}
@@ -304,7 +381,7 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
         {!loading && data.length === 0 && (
           <Box sx={{ textAlign: 'center', py: 8 }}>
             <Typography variant="h6" color="textSecondary">
-              {searchQuery ? '没有找到匹配的结果' : '暂无数据'}
+              {searchQuery ? '没有找到匹配的结果' : areaConfig.area ? `没有找到${areaConfig.area}的内容` : '暂无数据'}
             </Typography>
           </Box>
         )}

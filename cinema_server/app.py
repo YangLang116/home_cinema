@@ -11,4 +11,4 @@ app.register_blueprint(bp_movie)
 app.register_blueprint(bp_media)
 
 if __name__ == "__main__":
-    app.run(debug=False, port=7000)
+    app.run(host="192.168.182.35", debug=False, port=7000)

@@ -35,6 +35,7 @@ export interface PaginationParams {
   count: number;
   sort_by?: SortByType;
   sort_order?: SortOrderType;
+  area?: string;
 }
 
 export interface SearchParams {
@@ -47,4 +48,8 @@ export type SortOrderType = 'asc' | 'desc';
 export interface SortConfig {
   sort_by: SortByType;
   sort_order: SortOrderType;
+}
+
+export interface AreaConfig {
+  area: string;
 } 
