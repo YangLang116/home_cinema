@@ -12,7 +12,7 @@ WORKDIR /app/cinema_scrapy
 RUN pip install scrapy \
     && SCRAPY_PATH=$(which scrapy) \
     && echo "0 2 * * * cd /app/cinema_scrapy && $SCRAPY_PATH crawl movie 1> /var/log/movie_cron.log 2> /var/log/movie_cron_error.log" > /etc/cron.d/cinema-cron \
-    && echo "30 2 * * * cd /app/cinema_scrapy && $SCRAPY_PATH crawl tvshow 1> /var/log/tvshow_cron.log 2> /var/log/tvshow_cron_error.log" >> /etc/cron.d/cinema-cron \
+    && echo "0 5 * * * cd /app/cinema_scrapy && $SCRAPY_PATH crawl tvshow 1> /var/log/tvshow_cron.log 2> /var/log/tvshow_cron_error.log" >> /etc/cron.d/cinema-cron \
     && chmod 0644 /etc/cron.d/cinema-cron \
     && crontab /etc/cron.d/cinema-cron \
     && touch /var/log/movie_cron.log \
