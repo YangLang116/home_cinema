@@ -197,10 +197,10 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   return (
-    <Container maxWidth="xl">
+    <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3 } }}>
       <Box sx={{ py: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
-          <Typography variant="h4" component="h1">
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4, flexWrap: 'wrap', gap: 2 }}>
+          <Typography variant="h4" component="h1" sx={{ mt: { xs: 0, sm: 1 } }}>
             {title}
           </Typography>
           
@@ -233,13 +233,13 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
                 }}
               >
                 <FormControl variant="outlined" size="small">
-                  <InputLabel id="sort-by-label">排序字段</InputLabel>
+                  <InputLabel id="sort-by-label">排序类型</InputLabel>
                   <Select
                     labelId="sort-by-label"
                     id="sort-by"
                     value={sortConfig.sort_by}
                     onChange={handleSortByChange}
-                    label="排序字段"
+                    label="排序类型"
                     startAdornment={
                       sortConfig.sort_by === 'time' ? 
                       <TimeIcon sx={{ mr: 1, color: 'primary.main' }} /> : 
@@ -294,22 +294,7 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
                         bgcolor: !areaConfig.area ? 'rgba(0, 180, 216, 0.08)' : 'inherit'
                       }}
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        {!areaConfig.area && (
-                          <Box 
-                            component="span" 
-                            sx={{ 
-                              width: 8, 
-                              height: 8, 
-                              bgcolor: 'primary.main', 
-                              borderRadius: '50%', 
-                              mr: 1, 
-                              display: 'inline-block' 
-                            }} 
-                          />
-                        )}
-                        全部
-                      </Box>
+                      全部
                     </MenuItem>
                     
                     <Divider />
@@ -358,22 +343,7 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
                         bgcolor: !categoryConfig.category ? 'rgba(0, 180, 216, 0.08)' : 'inherit'
                       }}
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        {!categoryConfig.category && (
-                          <Box 
-                            component="span" 
-                            sx={{ 
-                              width: 8, 
-                              height: 8, 
-                              bgcolor: 'primary.main', 
-                              borderRadius: '50%', 
-                              mr: 1, 
-                              display: 'inline-block' 
-                            }} 
-                          />
-                        )}
-                        全部
-                      </Box>
+                      全部
                     </MenuItem>
                     
                     <Divider />

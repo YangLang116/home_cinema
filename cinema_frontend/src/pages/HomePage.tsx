@@ -7,7 +7,7 @@ import TvIcon from '@mui/icons-material/Tv';
 
 const HomePage: React.FC = () => {
   return (
-    <Container>
+    <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3 } }}>
       <Box
         sx={{
           display: 'flex',

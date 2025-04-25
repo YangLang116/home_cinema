@@ -340,8 +340,8 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
   }
 
   return (
-    <Container>
-      <Box sx={{ pt: 2, pb: 6 }}>
+    <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3 } }}>
+      <Box sx={{ py: 2 }}>
         <Button
           startIcon={<ArrowBackIcon />}
           onClick={handleBack}

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { AppBar, Toolbar, Typography, Box, Button, Container, useMediaQuery, ClickAwayListener, Paper } from '@mui/material';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
 import MovieIcon from '@mui/icons-material/Movie';
 import TvIcon from '@mui/icons-material/Tv';
@@ -12,6 +12,7 @@ const Navbar: React.FC = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   const toggleMobileMenu = () => {
@@ -20,6 +21,11 @@ const Navbar: React.FC = () => {
 
   const closeMobileMenu = () => {
     setMobileMenuOpen(false);
+  };
+
+  // 检查当前路径是否匹配
+  const isActive = (path: string) => {
+    return location.pathname.startsWith(path);
   };
 
   // 处理菜单项点击
@@ -38,7 +44,7 @@ const Navbar: React.FC = () => {
 
   return (
     <AppBar position="static" sx={{ mb: 2 }}>
-      <Container>
+      <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3 } }}>
         <Toolbar disableGutters sx={{ justifyContent: 'space-between' }}>
           <Typography
             variant="h5"
@@ -87,23 +93,57 @@ const Navbar: React.FC = () => {
                       sx={{ 
                         justifyContent: 'flex-start', 
                         p: 1.5,
-                        borderBottom: '1px solid rgba(0, 0, 0, 0.12)'
+                        borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
+                        bgcolor: isActive('/movie') ? 'rgba(0, 180, 216, 0.15)' : 'inherit',
+                        fontWeight: isActive('/movie') ? 'bold' : 'normal',
+                        '&:hover': {
+                          bgcolor: isActive('/movie') ? 'rgba(0, 180, 216, 0.25)' : 'rgba(255, 255, 255, 0.08)',
+                        }
                       }}
                       startIcon={<MovieIcon />}
                       onClick={() => handleMenuItemClick('/movie')}
                     >
                       电影
+                      {isActive('/movie') && (
+                        <Box 
+                          sx={{ 
+                            position: 'absolute', 
+                            left: 0, 
+                            top: 0,
+                            bottom: 0,
+                            width: '4px', 
+                            bgcolor: '#00b4d8'
+                          }} 
+                        />
+                      )}
                     </Button>
                     <Button
                       fullWidth
                       sx={{ 
                         justifyContent: 'flex-start',
-                        p: 1.5
+                        p: 1.5,
+                        bgcolor: isActive('/tvshow') ? 'rgba(0, 180, 216, 0.15)' : 'inherit',
+                        fontWeight: isActive('/tvshow') ? 'bold' : 'normal',
+                        '&:hover': {
+                          bgcolor: isActive('/tvshow') ? 'rgba(0, 180, 216, 0.25)' : 'rgba(255, 255, 255, 0.08)',
+                        }
                       }}
                       startIcon={<TvIcon />}
                       onClick={() => handleMenuItemClick('/tvshow')}
                     >
                       电视剧
+                      {isActive('/tvshow') && (
+                        <Box 
+                          sx={{ 
+                            position: 'absolute', 
+                            left: 0, 
+                            top: 0,
+                            bottom: 0,
+                            width: '4px', 
+                            bgcolor: '#00b4d8'
+                          }} 
+                        />
+                      )}
                     </Button>
                   </Paper>
                 </ClickAwayListener>
@@ -115,7 +155,21 @@ const Navbar: React.FC = () => {
                 component={RouterLink}
                 to="/movie"
                 color="inherit"
-                sx={{ mx: 1 }}
+                sx={{ 
+                  mx: 1,
+                  position: 'relative',
+                  fontWeight: isActive('/movie') ? 'bold' : 'normal',
+                  '&::after': isActive('/movie') ? {
+                    content: '""',
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '3px',
+                    bgcolor: '#00b4d8',
+                    borderRadius: '3px 3px 0 0'
+                  } : {}
+                }}
                 startIcon={<MovieIcon />}
               >
                 电影
@@ -124,7 +178,21 @@ const Navbar: React.FC = () => {
                 component={RouterLink}
                 to="/tvshow"
                 color="inherit"
-                sx={{ mx: 1 }}
+                sx={{ 
+                  mx: 1,
+                  position: 'relative',
+                  fontWeight: isActive('/tvshow') ? 'bold' : 'normal',
+                  '&::after': isActive('/tvshow') ? {
+                    content: '""',
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '3px',
+                    bgcolor: '#00b4d8',
+                    borderRadius: '3px 3px 0 0'
+                  } : {}
+                }}
                 startIcon={<TvIcon />}
               >
                 电视剧
