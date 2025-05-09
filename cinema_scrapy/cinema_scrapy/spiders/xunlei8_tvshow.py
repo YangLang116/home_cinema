@@ -92,3 +92,4 @@ class Xunlei8TvshowSpider(scrapy.Spider):
 
     def closed(self, reason):
         sync_db("tvshow.db")
+        print(f"Spider {self.name} closed with reason: {reason}")
