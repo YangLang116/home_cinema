@@ -14,4 +14,4 @@ class MediaItem(scrapy.Item):
     actors = scrapy.Field()  # 演员
     summary = scrapy.Field()  # 简介
     download_link = scrapy.Field()  # 下载链接
-
+    source = scrapy.Field()  # 来源

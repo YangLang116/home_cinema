@@ -4,8 +4,8 @@ from cinema_scrapy.items import MediaItem
 from cinema_scrapy.utils import is_downloadable, sync_db
 
 
-class MovieSpider(scrapy.Spider):
-    name = "movie"
+class Xunlei8MovieSpider(scrapy.Spider):
+    name = "xunlei8_movie"
     allowed_domains = ["xunlei8.cc"]
     start_urls = ["https://xunlei8.cc/movies.html"]
     visited_urls = set()
@@ -44,6 +44,7 @@ class MovieSpider(scrapy.Spider):
         if not is_downloadable(download_url):
             return
         movie_item["download_link"] = download_url
+        movie_item["source"] = '迅雷电影天堂'
         # 提取电影封面
         movie_item["cover"] = response.css(".ba330>img::attr(src)").get()
         # 提取电影评分

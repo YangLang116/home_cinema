@@ -6,8 +6,8 @@ from cinema_scrapy.items import MediaItem
 from cinema_scrapy.utils import is_downloadable, sync_db
 
 
-class TvshowSpider(scrapy.Spider):
-    name = "tvshow"
+class Xunlei8TvshowSpider(scrapy.Spider):
+    name = "xunlei8_tvshow"
     allowed_domains = ["xunlei8.cc"]
     start_urls = ["https://xunlei8.cc/tv.html"]
     visited_urls = set()
@@ -54,7 +54,7 @@ class TvshowSpider(scrapy.Spider):
         if not download_links:
             return
         tv_item["download_link"] = json.dumps(download_links, ensure_ascii=False)
-
+        tv_item["source"] = '迅雷电影天堂'
         # 提取电视剧封面
         tv_item["cover"] = response.css(".ba330 img::attr(src)").get()
         # 提取电视剧评分
