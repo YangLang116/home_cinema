@@ -6,7 +6,7 @@ class SaveDBPipeline:
     def open_spider(self, spider):
         # 连接到 SQLite 数据库
         spider_name = spider.name.split("_")[1]
-        self.conn = sqlite3.connect(f'{spider_name}.db')
+        self.conn = sqlite3.connect(f'../{spider_name}.db')
         self.cursor = self.conn.cursor()
         # 创建一个名为 media 的表
         self.cursor.execute('''

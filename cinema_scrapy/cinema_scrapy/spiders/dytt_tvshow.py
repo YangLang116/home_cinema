@@ -95,7 +95,7 @@ class DyttTvshowSpider(scrapy.Spider):
         duration_match = re.search(r"◎片\s*长\s*([^\n◎]+)", zoom_text)
         if duration_match:
             tv_item["duration"] = (
-                duration_match.group(1).strip().replace("Mins", "分钟")
+                duration_match.group(1).strip().replace(" Mins", "分钟")
             )
         else:
             tv_item["duration"] = ""
