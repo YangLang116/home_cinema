@@ -84,9 +84,8 @@ class Xunlei8TvshowSpider(scrapy.Spider):
             response.css('p.b86e6c:contains("主演：") a::text').getall()
         )
         # 提取电视剧剧情简介
-        tv_item["summary"] = response.css(
-            'h2.b5f5b3:contains("剧情简介") + p::text'
-        ).get()
+        summary = response.css('h2.b5f5b3:contains("剧情简介") + p::text').get()
+        tv_item["summary"] = re.sub(r"\s", "", summary)
 
         yield tv_item
 

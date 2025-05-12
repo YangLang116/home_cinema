@@ -74,7 +74,8 @@ class Xunlei8MovieSpider(scrapy.Spider):
         # 提取电影演员
         movie_item["actors"] = ", ".join(response.css("p.b86e6c a::text").getall())
         # 提取电影简介
-        movie_item["summary"] = response.css("h2.b5f5b3 + p.b1f40f7888::text").get()
+        summary = response.css("h2.b5f5b3 + p.b1f40f7888::text").get()
+        movie_item["summary"] = re.sub(r"\s", "", summary)
 
         yield movie_item
 
