@@ -11,17 +11,13 @@
 ### 构建Docker镜像
 
 ```bash
-docker build -t home_cinema .
+docker build --no-cache -t home_cinema .
 ```
 
 ### 运行Docker容器
 
 ```bash
-docker run -p 7000:7000 -p 7001:7001 \
-  -v ./data/movie.db:/app/cinema_scrapy/movie.db \
-  -v ./data/tvshow.db:/app/cinema_scrapy/tvshow.db \
-  -v ./data/backup:/app/cinema_scrapy/backup \
-  --name home_cinema_container home_cinema
+docker run -d -p 7000:7000 -p 7001:7001 --name home_cinema_container home_cinema
 ```
 
 服务端口：
