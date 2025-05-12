@@ -21,10 +21,6 @@ cinema_frontend/node_modules/
 .gitignore
 
 # 其他不需要的文件
-cinema_scrapy/movie.db
-cinema_scrapy/tvshow.db
-cinema_scrapy/backup
 .dockerignore
 Dockerfile
 README.md
-data/
