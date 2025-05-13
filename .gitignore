@@ -15,3 +15,4 @@ cinema_frontend/node_modules/
 
 # Python相关
 **/__pycache__/
+**/*_log.txt
