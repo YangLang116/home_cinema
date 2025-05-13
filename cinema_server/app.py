@@ -7,6 +7,7 @@ from utils.db_connection import get_connection_pool, close_all_pools
 import atexit
 import os
 
+
 def init_db_pools():
     """
     初始化数据库连接池
@@ -20,6 +21,7 @@ def init_db_pools():
     # 注册应用关闭时的清理函数
     atexit.register(close_all_pools)
 
+
 if __name__ == "__main__":
     app = Flask(__name__)
     CORS(app, resources={r"/*": {"origins": "*"}})  # 允许所有域名跨域访问
@@ -28,4 +30,4 @@ if __name__ == "__main__":
     app.register_blueprint(bp_media)
     # 初始化数据库连接池
     init_db_pools()
-    app.run(debug=False, port=7000, host='192.168.182.35')
+    app.run(debug=False, port=7000)
