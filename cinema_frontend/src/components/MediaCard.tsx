@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardMedia, Typography, Box, Rating, Chip, useMediaQuery, useTheme } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
 import { Movie, TvShow, MediaType } from '../types';
 
 interface MediaCardProps {
@@ -11,16 +10,13 @@ interface MediaCardProps {
 const DEFAULT_COVER = '/default-cover.svg';
 
 const MediaCard: React.FC<MediaCardProps> = ({ media, type }) => {
-  const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [imageError, setImageError] = useState(false);
 
-  // 点击卡片时导航到详情页，并将媒体数据作为state传递
+  // 点击卡片时在新标签页打开详情页
   const handleClick = () => {
-    navigate(`/${type}/${encodeURIComponent(media.name)}`, { 
-      state: { media } 
-    });
+    window.open(`/${type}/${media.id}`, '_blank');
   };
 
   // 将分类字符串转换为数组

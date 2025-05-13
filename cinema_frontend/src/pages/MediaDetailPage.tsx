@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -23,15 +23,15 @@ import {
   Checkbox,
   FormControlLabel
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DownloadIcon from '@mui/icons-material/Download';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import SelectAllIcon from '@mui/icons-material/SelectAll';
+import SourceIcon from '@mui/icons-material/Source';
 import { Movie, TvShow, MediaType } from '../types';
-import { searchMovie, searchTvShow, getProxiedCoverUrl } from '../services/api';
+import { getProxiedCoverUrl, getMovieDetail, getTvShowDetail } from '../services/api';
 import { GridContainer, GridItem } from '../components/GridWrapper';
 import ClipboardJS from 'clipboard';
 
@@ -77,9 +77,7 @@ function groupEpisodes(episodes: { name: string; link: string }[]) {
 }
 
 const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
-  const { name } = useParams<{ name: string }>();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const { id } = useParams<{ id: string }>();
   const [media, setMedia] = useState<Movie | TvShow | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -92,56 +90,38 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
   const [selectedEpisodes, setSelectedEpisodes] = useState<Record<string, boolean>>({});
   const [selectionMode, setSelectionMode] = useState(false);
 
-  // 获取媒体详情
   useEffect(() => {
-    // 尝试从位置状态中获取媒体数据
-    const locationState = location.state as { media?: Movie | TvShow } | null;
-
-    if (locationState?.media) {
-      // 如果从列表页传递了数据，则直接使用
-      setMedia(locationState.media);
-      setLoading(false);
-    } else {
-      // 否则通过API获取
-      const fetchMediaDetail = async () => {
-        if (!name) return;
-
-        setLoading(true);
-        setError(null);
-        try {
-          let result;
-          if (type === 'movie') {
-            result = await searchMovie({ name: decodeURIComponent(name) });
-          } else {
-            result = await searchTvShow({ name: decodeURIComponent(name) });
-          }
-
-          if (result && result.length > 0) {
-            // 处理封面URL，添加代理
-            const mediaWithProxiedCover = {
-              ...result[0],
-              cover: getProxiedCoverUrl(result[0].cover)
-            };
-            setMedia(mediaWithProxiedCover);
-          } else {
-            setError('未找到相关媒体信息');
-          }
-        } catch (err) {
-          setError('获取媒体详情失败');
-          console.error('获取媒体详情失败', err);
-        } finally {
-          setLoading(false);
+    // 通过API获取
+    const fetchMediaDetail = async () => {
+      if (!id) return;
+      setLoading(true);
+      setError(null);
+      try {
+        let result;
+        if (type === 'movie') {
+          result = await getMovieDetail({ id });
+        } else {
+          result = await getTvShowDetail({ id });
         }
-      };
-
-      fetchMediaDetail();
-    }
-  }, [name, type, location.state]);
-
-  // 返回上一页
-  const handleBack = () => {
-    navigate(-1);
-  };
+        if (result) {
+          // 处理封面URL，添加代理
+          const mediaWithProxiedCover = {
+            ...result,
+            cover: getProxiedCoverUrl(result.cover)
+          };
+          setMedia(mediaWithProxiedCover);
+        } else {
+          setError('未找到相关媒体信息');
+        }
+      } catch (err) {
+        setError('获取媒体详情失败');
+        console.error('获取媒体详情失败', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMediaDetail();
+  }, [id, type]);
 
   // 用于存储 ClipboardJS 实例
   const clipboardRef = useRef<ClipboardJS | null>(null);
@@ -165,43 +145,43 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
   const handleToggleSeason = (episodes: { name: string; link: string }[]) => {
     const episodeIds = episodes.map(ep => ep.link); // 使用链接作为ID
     const allSelected = episodeIds.every(id => selectedEpisodes[id]);
-    
+
     const newSelectedEpisodes = { ...selectedEpisodes };
-    
+
     // 如果全部已选中，则取消全部；否则选中全部
     episodeIds.forEach(id => {
       newSelectedEpisodes[id] = !allSelected;
     });
-    
+
     setSelectedEpisodes(newSelectedEpisodes);
   };
 
   // 全选/取消全选
   const handleSelectAll = () => {
     if (!media || !isTvShow(media)) return;
-    
+
     const allEpisodeIds = media.download_link.map(ep => ep.link);
     const allSelected = allEpisodeIds.every(id => selectedEpisodes[id]);
-    
+
     const newSelectedEpisodes: Record<string, boolean> = {};
-    
+
     // 如果全部已选中，则取消全部；否则选中全部
     allEpisodeIds.forEach(id => {
       newSelectedEpisodes[id] = !allSelected;
     });
-    
+
     setSelectedEpisodes(newSelectedEpisodes);
   };
 
   // 下载选中的剧集
   const handleDownloadSelected = () => {
     if (!media || !isTvShow(media)) return;
-    
+
     const selectedLinks = media.download_link
       .filter(episode => selectedEpisodes[episode.link])
       .map(episode => episode.link)
       .join('\n');
-    
+
     if (selectedLinks) {
       copyText(selectedLinks);
       showSnackbar(`已复制${Object.values(selectedEpisodes).filter(Boolean).length}个下载链接`, 'success');
@@ -318,9 +298,6 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
           <Typography variant="h5" color="error" gutterBottom>
             {error || '未找到媒体信息'}
           </Typography>
-          <Button startIcon={<ArrowBackIcon />} onClick={handleBack} sx={{ mt: 2 }}>
-            返回
-          </Button>
         </Box>
       </Container>
     );
@@ -342,14 +319,6 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
   return (
     <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3 } }}>
       <Box sx={{ py: 2 }}>
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={handleBack}
-          sx={{ mb: 2 }}
-        >
-          返回
-        </Button>
-
         <Card sx={{ bgcolor: 'background.paper', overflow: 'hidden', borderRadius: 2, boxShadow: 3 }}>
           <GridContainer>
             {/* 封面部分 */}
@@ -547,6 +516,12 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
                       时长: {media.duration || '未知'}
                     </Typography>
                   </GridItem>
+                  <GridItem xs={12} sm={6}>
+                    <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center' }}>
+                      <SourceIcon fontSize="small" sx={{ mr: 0.5, color: 'primary.main', opacity: 0.8 }} />
+                      来源: {media.source || '未知'}
+                    </Typography>
+                  </GridItem>
                   <GridItem xs={12}>
                     <Typography variant="body2" color="text.secondary">
                       演员: {media.actors || '未知'}
@@ -586,7 +561,7 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
                         <Box sx={{ display: 'flex', gap: 1 }}>
                           <FormControlLabel
                             control={
-                              <Checkbox 
+                              <Checkbox
                                 checked={selectionMode}
                                 onChange={() => setSelectionMode(!selectionMode)}
                                 color="primary"
@@ -653,7 +628,7 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
                                     <Checkbox
                                       checked={episodes.every(ep => selectedEpisodes[ep.link])}
                                       indeterminate={
-                                        episodes.some(ep => selectedEpisodes[ep.link]) && 
+                                        episodes.some(ep => selectedEpisodes[ep.link]) &&
                                         !episodes.every(ep => selectedEpisodes[ep.link])
                                       }
                                       onChange={() => handleToggleSeason(episodes)}

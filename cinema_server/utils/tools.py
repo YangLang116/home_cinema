@@ -1,8 +1,5 @@
 import sqlite3
-
-
-def __connect_movie_db(db):
-    return sqlite3.connect(db)
+from utils.db_connection import get_connection_pool
 
 
 def __get_data_from_cursor(cursor):
@@ -23,15 +20,17 @@ def __get_data_from_cursor(cursor):
             "actors": data[10],
             "summary": data[11],
             "download_link": data[12],
+            "source": data[13],
         }
         result.append(info)
     return result
 
 
 def __get_data_from_db(db, sql, args):
+    pool = get_connection_pool(db)
     conn = None
     try:
-        conn = __connect_movie_db(db)
+        conn = pool.get_connection()
         cursor = conn.cursor()
         cursor.execute(sql, args)
         result = __get_data_from_cursor(cursor)
@@ -41,7 +40,7 @@ def __get_data_from_db(db, sql, args):
         return []
     finally:
         if conn:
-            conn.close()
+            pool.release_connection(conn)
 
 
 def get_page_data(db, page, per_page, sort_by="time", sort_order="desc", area="", category=""):
@@ -98,9 +97,10 @@ def get_all_areas(db):
     :param db: 数据库文件
     :return: 唯一地区列表
     """
+    pool = get_connection_pool(db)
     conn = None
     try:
-        conn = __connect_movie_db(db)
+        conn = pool.get_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT DISTINCT area FROM media WHERE area IS NOT NULL AND area != ''")
         
@@ -122,7 +122,7 @@ def get_all_areas(db):
         return []
     finally:
         if conn:
-            conn.close()
+            pool.release_connection(conn)
 
 
 def get_all_categories(db):
@@ -131,9 +131,10 @@ def get_all_categories(db):
     :param db: 数据库文件
     :return: 唯一分类列表
     """
+    pool = get_connection_pool(db)
     conn = None
     try:
-        conn = __connect_movie_db(db)
+        conn = pool.get_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT DISTINCT category FROM media WHERE category IS NOT NULL AND category != ''")
         
@@ -155,4 +156,17 @@ def get_all_categories(db):
         return []
     finally:
         if conn:
-            conn.close()
+            pool.release_connection(conn)
+
+
+def get_detail_by_id(db, id):
+    """
+    根据ID获取影视详情
+    :param db: 数据库文件
+    :param id: 影视ID
+    :return: 详情数据或None
+    """
+    data_list = __get_data_from_db(db, "SELECT * FROM media WHERE id = ?", (id,))
+    if data_list and len(data_list) > 0:
+        return data_list[0]
+    return None

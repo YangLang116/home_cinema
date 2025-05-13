@@ -1,4 +1,5 @@
 export interface Movie {
+  id: number;
   actors: string;
   area: string;
   category: string;
@@ -11,9 +12,11 @@ export interface Movie {
   release_date: string;
   score: number;
   summary: string;
+  source: string;
 }
 
 export interface TvShow {
+  id: number;
   actors: string;
   area: string;
   category: string;
@@ -26,6 +29,7 @@ export interface TvShow {
   release_date: string;
   score: number;
   summary: string;
+  source: string;
 }
 
 export type MediaType = 'movie' | 'tvshow';
@@ -41,6 +45,10 @@ export interface PaginationParams {
 
 export interface SearchParams {
   name: string;
+}
+
+export interface DetailParams {
+  id: string;
 }
 
 export type SortByType = 'time' | 'score';

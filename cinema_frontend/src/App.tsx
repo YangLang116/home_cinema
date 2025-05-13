@@ -21,7 +21,7 @@ function App() {
             element={<MediaListPage type="movie" title="电影" />} 
           />
           <Route 
-            path="/movie/:name" 
+            path="/movie/:id" 
             element={<MediaDetailPage type="movie" />} 
           />
           <Route 
@@ -29,7 +29,7 @@ function App() {
             element={<MediaListPage type="tvshow" title="电视剧" />} 
           />
           <Route 
-            path="/tvshow/:name" 
+            path="/tvshow/:id" 
             element={<MediaDetailPage type="tvshow" />} 
           />
         </Routes>

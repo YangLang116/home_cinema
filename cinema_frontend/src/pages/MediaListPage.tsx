@@ -40,59 +40,6 @@ interface MediaListPageProps {
   title: string;
 }
 
-// 调试组件，显示加载状态
-const DebugInfo = ({ loading, hasMore, searchQuery, page, data }: { 
-  loading: boolean; 
-  hasMore: boolean; 
-  searchQuery: string;
-  page: number;
-  data: any[];
-}) => {
-  const [showDebug, setShowDebug] = useState(false);
-
-  if (!showDebug) return (
-    <Fab 
-      size="small" 
-      color="default" 
-      sx={{ position: 'fixed', bottom: 20, left: 20, zIndex: 1000, opacity: 0.7 }}
-      onClick={() => setShowDebug(true)}
-    >
-      <Box component="span" sx={{ fontSize: '0.7rem' }}>调试</Box>
-    </Fab>
-  );
-
-  return (
-    <Box 
-      sx={{ 
-        position: 'fixed', 
-        bottom: 20, 
-        left: 20, 
-        zIndex: 1000, 
-        bgcolor: 'background.paper',
-        p: 2,
-        borderRadius: 1,
-        boxShadow: 3,
-        maxWidth: 250,
-        opacity: 0.9
-      }}
-    >
-      <Typography variant="subtitle2" gutterBottom>调试信息</Typography>
-      <Box sx={{ fontSize: '0.75rem' }}>
-        <Box>加载中: {loading ? '是' : '否'}</Box>
-        <Box>有更多: {hasMore ? '是' : '否'}</Box>
-        <Box>搜索关键字: {searchQuery || '无'}</Box>
-        <Box>当前页码: {page}</Box>
-        <Box>数据项数: {data.length}</Box>
-      </Box>
-      <Box sx={{ mt: 1, textAlign: 'right' }}>
-        <IconButton size="small" onClick={() => setShowDebug(false)}>
-          <ClearIcon fontSize="small" />
-        </IconButton>
-      </Box>
-    </Box>
-  );
-};
-
 const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
   const { 
     data, 
@@ -104,7 +51,6 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
     hasMore,
     sortConfig,
     handleSortChange,
-    page,
     areas,
     areasLoading,
     areaConfig,
@@ -480,15 +426,6 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
             <KeyboardArrowUpIcon />
           </Fab>
         </Zoom>
-
-        {/* 调试信息 */}
-        <DebugInfo 
-          loading={loading} 
-          hasMore={hasMore} 
-          searchQuery={searchQuery} 
-          page={page}
-          data={data}
-        />
       </Box>
     </Container>
   );

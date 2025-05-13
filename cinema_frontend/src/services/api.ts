@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Movie, TvShow, PaginationParams, SearchParams } from '../types';
+import { Movie, TvShow, PaginationParams, SearchParams, DetailParams } from '../types';
 
 // 使用当前应用的主机地址和协议
 const BASE_URL = `${window.location.protocol}//${window.location.hostname}:7000`;
@@ -31,6 +31,18 @@ export const searchMovie = async ({ name }: SearchParams): Promise<Movie[]> => {
   } catch (error) {
     console.error('搜索电影失败', error);
     return [];
+  }
+};
+
+export const getMovieDetail = async ({ id }: DetailParams): Promise<Movie | null> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/movie/detail`, {
+      params: { id }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('获取电影详情失败', error);
+    return null;
   }
 };
 
@@ -76,6 +88,18 @@ export const searchTvShow = async ({ name }: SearchParams): Promise<TvShow[]> =>
   } catch (error) {
     console.error('搜索电视剧失败', error);
     return [];
+  }
+};
+
+export const getTvShowDetail = async ({ id }: DetailParams): Promise<TvShow | null> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/tvshow/detail`, {
+      params: { id }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('获取电视剧详情失败', error);
+    return null;
   }
 };
 

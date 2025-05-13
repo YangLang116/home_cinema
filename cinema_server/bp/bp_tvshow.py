@@ -1,6 +1,6 @@
 import json
 from flask import Blueprint, request, jsonify, make_response
-from utils.tools import get_page_data, get_search_data, get_all_areas, get_all_categories
+from utils.tools import get_page_data, get_search_data, get_all_areas, get_all_categories, get_detail_by_id
 
 __db__ = "tvshow.db"
 
@@ -42,6 +42,30 @@ def get_tvshow_areas():
 def get_tvshow_categories():
     categories = get_all_categories(__db__)
     response = make_response(jsonify({"data": categories}))
+    response.headers["Content-Type"] = "application/json"
+    return response
+
+
+# 根据ID获取电视剧详情
+@bp_tvshow.route("/detail", methods=["GET"])
+def get_tvshow_detail():
+    id = request.args.get("id")
+    if not id:
+        response = make_response(jsonify({"error": "缺少ID参数"}), 400)
+        response.headers["Content-Type"] = "application/json"
+        return response
+    
+    data = get_detail_by_id(__db__, id)
+    if not data:
+        response = make_response(jsonify({"error": "未找到对应的电视剧"}), 404)
+        response.headers["Content-Type"] = "application/json"
+        return response
+    
+    # 转换下载链接为JSON对象
+    download_json = data["download_link"]
+    data["download_link"] = json.loads(download_json)
+    
+    response = make_response(jsonify(data))
     response.headers["Content-Type"] = "application/json"
     return response
 
