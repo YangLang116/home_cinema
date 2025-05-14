@@ -1,5 +1,6 @@
 from itemadapter import ItemAdapter
 import sqlite3
+import json
 
 
 class SaveDBPipeline:
@@ -24,8 +25,7 @@ class SaveDBPipeline:
                 director TEXT,
                 actors TEXT,
                 summary TEXT,
-                download_link TEXT,
-                source TEXT
+                download_link TEXT
             )
         """
         )
@@ -35,25 +35,27 @@ class SaveDBPipeline:
         adapter = ItemAdapter(item)
         # 检查数据库中是否已存在具有相同 name 和 release_date 的记录
         self.cursor.execute(
-            """SELECT id FROM media WHERE name =? AND director =?""",
+            """SELECT id, score, download_link FROM media WHERE name =? AND director =?""",
             (adapter.get("name"), adapter.get("director")),
         )
         existing_record = self.cursor.fetchone()
         if existing_record:
             # 如果存在，则更新记录
-            self._update_movie(adapter, existing_record[0])
+            self._update_media(
+                adapter, existing_record[0], existing_record[1], existing_record[2]
+            )
         else:
             # 如果不存在，则插入新记录
-            self._insert_movie(adapter)
+            self._insert_media(adapter)
 
         self.conn.commit()
         return item
 
-    def _insert_movie(self, adapter):
+    def _insert_media(self, adapter):
         self.cursor.execute(
             """
-            INSERT INTO media (cover, name, score, area, language, category, release_date, duration, director, actors, summary, download_link, source)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+            INSERT INTO media (cover, name, score, area, language, category, release_date, duration, director, actors, summary, download_link)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
         """,
             (
                 adapter.get("cover"),
@@ -67,21 +69,29 @@ class SaveDBPipeline:
                 adapter.get("director"),
                 adapter.get("actors"),
                 adapter.get("summary"),
-                adapter.get("download_link"),
-                adapter.get("source"),
+                json.dumps(
+                    {adapter.get("source"): adapter.get("download_link")},
+                    ensure_ascii=False,
+                ),
             ),
         )
 
-    def _update_movie(self, adapter, movie_id):
+    def _update_media(self, adapter, movie_id, origin_score, origin_download_link):
+        # 更新评分
+        score = adapter.get("score") if origin_score <= 0 else origin_score
+        # 添加更多下载链接
+        origin_download_link = json.loads(origin_download_link)
+        origin_download_link[adapter.get("source")] = adapter.get("download_link")
+        download_link = json.dumps(origin_download_link, ensure_ascii=False)
         self.cursor.execute(
             """
             UPDATE media
-            SET cover =?, score =?, area =?, language =?, category =?, duration =?, director =?, actors =?, summary =?, download_link =?, source =?
+            SET cover =?, score =?, area =?, language =?, category =?, duration =?, director =?, actors =?, summary =?, download_link =?
             WHERE id =?
         """,
             (
                 adapter.get("cover"),
-                adapter.get("score"),
+                score,
                 adapter.get("area"),
                 adapter.get("language"),
                 adapter.get("category"),
@@ -89,8 +99,7 @@ class SaveDBPipeline:
                 adapter.get("director"),
                 adapter.get("actors"),
                 adapter.get("summary"),
-                adapter.get("download_link"),
-                adapter.get("source"),
+                download_link,
                 movie_id,
             ),
         )
