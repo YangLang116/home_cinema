@@ -20,7 +20,6 @@ def __get_data_from_cursor(cursor):
             "actors": data[10],
             "summary": data[11],
             "download_link": data[12],
-            "source": data[13],
         }
         result.append(info)
     return result

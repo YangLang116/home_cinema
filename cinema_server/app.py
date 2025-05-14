@@ -24,7 +24,8 @@ def init_db_pools():
 
 if __name__ == "__main__":
     app = Flask(__name__)
-    CORS(app, resources={r"/*": {"origins": "*"}})  # 允许所有域名跨域访问
+    # 允许所有域名跨域访问
+    CORS(app, resources={r"/*": {"origins": "*"}})
     app.register_blueprint(bp_tvshow)
     app.register_blueprint(bp_movie)
     app.register_blueprint(bp_media)
