@@ -15,6 +15,7 @@ RUN pip install scrapy \
     && echo "0 2 * * 0,1,3,5 cd /app/cinema_scrapy && $SCRAPY_PATH crawl dytt_tvshow 1> /var/log/tvshow_cron.log 2> /var/log/tvshow_cron_error.log" >> /etc/cron.d/cinema-cron \
     && echo "0 2 * * 2,4,6 cd /app/cinema_scrapy && $SCRAPY_PATH crawl dytt_movie 1> /var/log/movie_cron.log 2> /var/log/movie_cron_error.log" >> /etc/cron.d/cinema-cron \
     && echo "0 2 * * 2,4,6 cd /app/cinema_scrapy && $SCRAPY_PATH crawl xunlei8_tvshow 1> /var/log/tvshow_cron.log 2> /var/log/tvshow_cron_error.log" >> /etc/cron.d/cinema-cron \
+    && echo "0 0 * * * cd /app && git add . && git commit -m 'update' && git push origin main" >> /etc/cron.d/cinema-cron \
     && chmod 0644 /etc/cron.d/cinema-cron \
     && crontab /etc/cron.d/cinema-cron \
     && touch /var/log/movie_cron.log \
