@@ -43,6 +43,6 @@ docker run -d -p 7000:7000 -p 7001:7001 --name home_cinema_container home_cinema
 ## 数据存储
 
 电影和电视剧数据分别存储在以下数据库文件中：
-- 电影数据：`./data/movie.db`
-- 电视剧数据：`./data/tvshow.db`
-- 备份目录：`./data/backup`
+- 电影数据：`/cinema_scrapy/movie.db`
+- 电视剧数据：`/cinema_scrapy/tvshow.db`
+- 备份目录：`cinema_scrapy/backup`
