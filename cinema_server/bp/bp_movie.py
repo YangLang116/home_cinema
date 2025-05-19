@@ -61,6 +61,10 @@ def get_movie_detail():
         response.headers["Content-Type"] = "application/json"
         return response
     
+    # 转换下载链接为JSON对象
+    download_json = data["download_link"]
+    data["download_link"] = json.loads(download_json)
+    
     response = make_response(jsonify(data))
     response.headers["Content-Type"] = "application/json"
     return response

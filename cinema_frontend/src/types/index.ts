@@ -1,11 +1,10 @@
-export interface Movie {
+export interface BaseMedia {
   id: number;
   actors: string;
   area: string;
   category: string;
   cover: string;
   director: string | null;
-  download_link: string;
   duration: string;
   language: string;
   name: string;
@@ -15,21 +14,12 @@ export interface Movie {
   source: string;
 }
 
-export interface TvShow {
-  id: number;
-  actors: string;
-  area: string;
-  category: string;
-  cover: string;
-  director: string | null;
-  download_link: { name: string; link: string }[];
-  duration: string;
-  language: string;
-  name: string;
-  release_date: string;
-  score: number;
-  summary: string;
-  source: string;
+export interface Movie extends BaseMedia {
+  download_link: Record<string, string>;
+}
+
+export interface TvShow extends BaseMedia {
+  download_link: Record<string, { name: string; link: string }[]>;
 }
 
 export type MediaType = 'movie' | 'tvshow';

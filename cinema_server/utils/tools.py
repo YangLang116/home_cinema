@@ -107,8 +107,8 @@ def get_all_areas(db):
         all_areas = []
         for row in cursor.fetchall():
             # 按", "分割复合地区
-            if row[0] and ", " in row[0]:
-                areas = row[0].split(", ")
+            if row[0] and "," in row[0]:
+                areas = row[0].split(",")
                 all_areas.extend(areas)
             else:
                 all_areas.append(row[0])
@@ -141,8 +141,8 @@ def get_all_categories(db):
         all_categories = []
         for row in cursor.fetchall():
             # 按", "分割复合分类
-            if row[0] and ", " in row[0]:
-                categories = row[0].split(", ")
+            if row[0] and "," in row[0]:
+                categories = row[0].split(",")
                 all_categories.extend(categories)
             else:
                 all_categories.append(row[0])

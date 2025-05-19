@@ -28,8 +28,6 @@ class DatabaseConnectionPool:
         for _ in range(max_connections):
             conn = sqlite3.connect(db_path, check_same_thread=False)
             self.pool.append(conn)
-            
-        print(f"数据库连接池初始化完成: {db_path}, 连接数: {max_connections}")
     
     def get_connection(self):
         """

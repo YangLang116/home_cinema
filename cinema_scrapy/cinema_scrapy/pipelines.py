@@ -35,14 +35,18 @@ class SaveDBPipeline:
         adapter = ItemAdapter(item)
         # 检查数据库中是否已存在具有相同 name 和 release_date 的记录
         self.cursor.execute(
-            """SELECT id, score, download_link FROM media WHERE name =? AND director =?""",
+            """SELECT id, cover, score, download_link FROM media WHERE name =? AND director =?""",
             (adapter.get("name"), adapter.get("director")),
         )
         existing_record = self.cursor.fetchone()
         if existing_record:
             # 如果存在，则更新记录
             self._update_media(
-                adapter, existing_record[0], existing_record[1], existing_record[2]
+                adapter,
+                existing_record[0],
+                existing_record[1],
+                existing_record[2],
+                existing_record[3],
             )
         else:
             # 如果不存在，则插入新记录
@@ -76,9 +80,22 @@ class SaveDBPipeline:
             ),
         )
 
-    def _update_media(self, adapter, movie_id, origin_score, origin_download_link):
+    def _update_media(
+        self,
+        adapter,
+        movie_id,
+        origin_cover,
+        origin_score,
+        origin_download_link,
+    ):
         # 更新评分
         score = adapter.get("score") if origin_score <= 0 else origin_score
+        # 更新封面
+        cover = (
+            origin_cover
+            if origin_cover is not None and "cdn" in origin_cover
+            else adapter.get("cover")
+        )
         # 添加更多下载链接
         origin_download_link = json.loads(origin_download_link)
         origin_download_link[adapter.get("source")] = adapter.get("download_link")
@@ -86,22 +103,10 @@ class SaveDBPipeline:
         self.cursor.execute(
             """
             UPDATE media
-            SET cover =?, score =?, area =?, language =?, category =?, duration =?, director =?, actors =?, summary =?, download_link =?
+            SET cover =?, score =?, download_link =?
             WHERE id =?
         """,
-            (
-                adapter.get("cover"),
-                score,
-                adapter.get("area"),
-                adapter.get("language"),
-                adapter.get("category"),
-                adapter.get("duration"),
-                adapter.get("director"),
-                adapter.get("actors"),
-                adapter.get("summary"),
-                download_link,
-                movie_id,
-            ),
+            (cover, score, download_link, movie_id),
         )
         self.conn.commit()
 
