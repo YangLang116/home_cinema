@@ -24,3 +24,5 @@ cinema_frontend/node_modules/
 .dockerignore
 Dockerfile
 README.md
+cinema_scrapy/backup/
+**/*.db
