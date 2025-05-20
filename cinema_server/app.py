@@ -22,13 +22,22 @@ def init_db_pools():
     atexit.register(close_all_pools)
 
 
-if __name__ == "__main__":
-    app = Flask(__name__)
+def create_app():
+    """
+    创建并配置Flask应用
+    """
+    _app = Flask(__name__)
     # 允许所有域名跨域访问
-    CORS(app, resources={r"/*": {"origins": "*"}})
-    app.register_blueprint(bp_tvshow)
-    app.register_blueprint(bp_movie)
-    app.register_blueprint(bp_media)
+    CORS(_app, resources={r"/*": {"origins": "*"}})
+    _app.register_blueprint(bp_tvshow)
+    _app.register_blueprint(bp_movie)
+    _app.register_blueprint(bp_media)
     # 初始化数据库连接池
     init_db_pools()
+    return _app
+
+
+app = create_app()
+
+if __name__ == "__main__":
     app.run(debug=False, port=7000)
