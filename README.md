@@ -17,7 +17,11 @@ docker build --no-cache -t home_cinema .
 ### 运行Docker容器
 
 ```bash
-docker run -d -p 7000:7000 -p 7001:7001 --name home_cinema_container home_cinema
+docker run -d --name home_cinema_container \
+    -p 7000:7000 \
+    -p 7001:7001 \
+    --restart unless-stopped \
+    home_cinema
 ```
 
 服务端口：
