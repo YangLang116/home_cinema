@@ -5,8 +5,8 @@ import { Movie, TvShow, PaginationParams, SearchParams, DetailParams } from '../
 const BASE_URL = `${window.location.protocol}//${window.location.hostname}:7000`;
 
 // 处理封面图片URL，添加代理前缀
-export const getProxiedCoverUrl = (coverUrl: string): string => {
-  return `${BASE_URL}/media/proxy?url=${encodeURIComponent(coverUrl)}`;
+export const getCoverUrl = (cover: string): string => {
+  return `${BASE_URL}/media/cover/${cover}`;
 };
 
 // 电影相关API

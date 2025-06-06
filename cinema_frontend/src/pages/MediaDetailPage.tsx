@@ -13,7 +13,7 @@ import {
   Alert
 } from '@mui/material';
 import { BaseMedia, Movie, TvShow, MediaType } from '../types';
-import { getProxiedCoverUrl, getMovieDetail, getTvShowDetail } from '../services/api';
+import { getCoverUrl, getMovieDetail, getTvShowDetail } from '../services/api';
 import { GridContainer, GridItem } from '../components/GridWrapper';
 import MediaCover from '../components/detail/MediaCover';
 import MovieDownloadLinks from '../components/detail/MovieDownloadLinks';
@@ -84,10 +84,9 @@ const MediaDetailPage: React.FC<MediaDetailPageProps> = ({ type }) => {
           result = await getTvShowDetail({ id });
         }
         if (result) {
-          // 处理封面URL，添加代理
           const mediaWithProxiedCover = {
             ...result,
-            cover: getProxiedCoverUrl(result.cover)
+            cover: getCoverUrl(result.cover)
           };
           setMedia(mediaWithProxiedCover);
         } else {

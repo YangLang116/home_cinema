@@ -8,18 +8,18 @@ def __get_data_from_cursor(cursor):
     for data in data_list:
         info = {
             "id": data[0],
-            "cover": data[1],
-            "name": data[2],
-            "score": data[3],
-            "area": data[4],
-            "language": data[5],
-            "category": data[6],
-            "release_date": data[7],
-            "duration": data[8],
-            "director": data[9],
-            "actors": data[10],
-            "summary": data[11],
-            "download_link": data[12],
+            "cover": data[2],
+            "name": data[3],
+            "score": data[4],
+            "area": data[5],
+            "language": data[6],
+            "category": data[7],
+            "release_date": data[8],
+            "duration": data[9],
+            "director": data[10],
+            "actors": data[11],
+            "summary": data[12],
+            "download_link": data[13],
         }
         result.append(info)
     return result

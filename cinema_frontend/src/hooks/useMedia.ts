@@ -4,7 +4,7 @@ import {
   getTvShowList, 
   searchMovie, 
   searchTvShow, 
-  getProxiedCoverUrl,
+  getCoverUrl,
   getMovieAreas,
   getTvShowAreas,
   getMovieCategories,
@@ -24,11 +24,10 @@ import {
   CategoryConfig 
 } from '../types';
 
-// 处理媒体数据，将封面URL替换为代理URL
 function processMediaData<T extends BaseMedia>(data: T[]): T[] {
   return data.map(item => ({
     ...item,
-    cover: getProxiedCoverUrl(item.cover)
+    cover: getCoverUrl(item.cover)
   }));
 }
 

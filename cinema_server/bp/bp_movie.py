@@ -1,8 +1,7 @@
 import json
 from flask import Blueprint, request, jsonify, make_response
 from utils.tools import get_page_data, get_search_data, get_all_areas, get_all_categories, get_detail_by_id
-
-__db__ = "movie.db"
+from config import movie_db
 
 bp_movie = Blueprint("movie", __name__, url_prefix="/movie")
 
@@ -16,7 +15,7 @@ def get_movies():
     sort_order = request.args.get("sort_order", "desc") 
     area = request.args.get("area", "")
     category = request.args.get("category", "")
-    data_list = get_page_data(__db__, page, per_page, sort_by, sort_order, area, category)
+    data_list = get_page_data(movie_db, page, per_page, sort_by, sort_order, area, category)
     return __format_data__(data_list)
 
 
@@ -24,14 +23,14 @@ def get_movies():
 @bp_movie.route("/search", methods=["GET"])
 def search_movies():
     name = request.args.get("name")
-    data_list = get_search_data(__db__, name)
+    data_list = get_search_data(movie_db, name)
     return __format_data__(data_list)
 
 
 # 获取所有电影地区
 @bp_movie.route("/areas", methods=["GET"])
 def get_movie_areas():
-    areas = get_all_areas(__db__)
+    areas = get_all_areas(movie_db)
     response = make_response(jsonify({"data": areas}))
     response.headers["Content-Type"] = "application/json"
     return response
@@ -40,7 +39,7 @@ def get_movie_areas():
 # 获取所有电影分类
 @bp_movie.route("/categories", methods=["GET"])
 def get_movie_categories():
-    categories = get_all_categories(__db__)
+    categories = get_all_categories(movie_db)
     response = make_response(jsonify({"data": categories}))
     response.headers["Content-Type"] = "application/json"
     return response
@@ -55,7 +54,7 @@ def get_movie_detail():
         response.headers["Content-Type"] = "application/json"
         return response
     
-    data = get_detail_by_id(__db__, id)
+    data = get_detail_by_id(movie_db, id)
     if not data:
         response = make_response(jsonify({"error": "未找到对应的电影"}), 404)
         response.headers["Content-Type"] = "application/json"
