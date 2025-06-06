@@ -3,6 +3,7 @@ import scrapy
 # 定义基类
 class MediaItem(scrapy.Item):
     cover = scrapy.Field()  # 媒体封面
+    local_cover = scrapy.Field()  # 本地封面文件名
     name = scrapy.Field()  # 媒体名称
     score = scrapy.Field()  # 评分
     area = scrapy.Field()  # 地区

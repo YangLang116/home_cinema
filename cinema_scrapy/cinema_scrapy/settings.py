@@ -63,6 +63,7 @@ DEFAULT_REQUEST_HEADERS = {
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
+   "cinema_scrapy.pipelines.DownloadCoverImagePipeline": 200,
    "cinema_scrapy.pipelines.SaveDBPipeline": 300,
 }
 
