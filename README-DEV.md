@@ -5,13 +5,26 @@
 ### 构建Docker镜像
 
 ```bash
-docker build --no-cache -t home_cinema .
+docker build --no-cache -t home_cinema_dev .
 ```
 
 ### 运行Docker容器
 
+- Mac、Linux
 ```bash
-docker run -d -p 7000:7000 -p 7001:7001 --name home_cinema_container home_cinema
+docker run -d --name home_cinema_dev_container \
+    -p 7000:7000 \
+    -p 7001:7001 \
+    -v ./cinema_scrapy/backup:/app/cinema_scrapy/backup \
+    -v ./cinema_scrapy/movie.db:/app/cinema_scrapy/movie.db \
+    -v ./cinema_scrapy/tvshow.db:/app/cinema_scrapy/tvshow.db \
+    --restart unless-stopped \
+    home_cinema_dev
+```
+
+- Windows
+```bash
+docker run -d --name home_cinema_dev_container -p 7000:7000 -p 7001:7001 -v .\cinema_scrapy\backup:/app/cinema_scrapy/backup -v .\cinema_scrapy\movie.db:/app/cinema_scrapy/movie.db -v .\cinema_scrapy\tvshow.db:/app/cinema_scrapy/tvshow.db --restart unless-stopped home_cinema_dev
 ```
 
 ## 2、服务端口：
