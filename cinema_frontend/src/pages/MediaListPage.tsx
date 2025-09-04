@@ -1,14 +1,14 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { 
-  Box, 
-  Grid, 
-  Typography, 
-  CircularProgress, 
-  Container, 
-  TextField, 
-  InputAdornment, 
-  IconButton, 
-  Zoom, 
+import {
+  Box,
+  Grid,
+  Typography,
+  CircularProgress,
+  Container,
+  TextField,
+  InputAdornment,
+  IconButton,
+  Zoom,
   Fab,
   FormControl,
   InputLabel,
@@ -20,9 +20,9 @@ import {
   Divider
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { 
-  Search as SearchIcon, 
-  Clear as ClearIcon, 
+import {
+  Search as SearchIcon,
+  Clear as ClearIcon,
   KeyboardArrowUp as KeyboardArrowUpIcon,
   SortByAlpha as SortIcon,
   AccessTime as TimeIcon,
@@ -41,13 +41,13 @@ interface MediaListPageProps {
 }
 
 const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
-  const { 
-    data, 
-    loading, 
-    error, 
-    loadMore, 
-    searchQuery, 
-    handleSearchChange, 
+  const {
+    data,
+    loading,
+    error,
+    loadMore,
+    searchQuery,
+    handleSearchChange,
     hasMore,
     sortConfig,
     handleSortChange,
@@ -62,10 +62,10 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
   } = useMedia({ type });
   const [searchText, setSearchText] = useState('');
   const [showScrollTop, setShowScrollTop] = useState(false);
-  
+
   // 创建一个用于观察的元素引用
   const loadMoreRef = useRef<HTMLDivElement>(null);
-  
+
   // 使用自定义的 intersection observer 钩子
   useIntersectionObserver({
     target: loadMoreRef as React.RefObject<HTMLDivElement>,
@@ -137,7 +137,8 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
   // 当类型变化时重置搜索文本
   useEffect(() => {
     setSearchText('');
-  }, [type]);
+    handleSearchChange(''); // 同时清空useMedia中的搜索查询
+  }, [type, handleSearchChange]);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -149,13 +150,13 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
           <Typography variant="h4" component="h1" sx={{ mt: { xs: 0, sm: 1 } }}>
             {title}
           </Typography>
-          
+
           <Stack direction="column" spacing={2} alignItems="flex-start" width={{ xs: '100%', sm: 'auto' }}>
             {/* 排序控制 - 移动端使用水平滚动容器 */}
-            <Box 
-              sx={{ 
-                width: '100%', 
-                overflowX: 'auto', 
+            <Box
+              sx={{
+                width: '100%',
+                overflowX: 'auto',
                 WebkitOverflowScrolling: 'touch',
                 '&::-webkit-scrollbar': {
                   height: '4px',
@@ -166,12 +167,12 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
                 }
               }}
             >
-              <Stack 
-                direction="row" 
-                spacing={1} 
-                alignItems="center" 
-                sx={{ 
-                  py: 1, 
+              <Stack
+                direction="row"
+                spacing={1}
+                alignItems="center"
+                sx={{
+                  py: 1,
                   minWidth: { xs: 'min-content' },
                   '& .MuiFormControl-root': {
                     minWidth: { xs: 110, sm: 120 }
@@ -187,16 +188,16 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
                     onChange={handleSortByChange}
                     label="排序类型"
                     startAdornment={
-                      sortConfig.sort_by === 'time' ? 
-                      <TimeIcon sx={{ mr: 1, color: 'primary.main' }} /> : 
-                      <StarIcon sx={{ mr: 1, color: 'primary.main' }} />
+                      sortConfig.sort_by === 'time' ?
+                        <TimeIcon sx={{ mr: 1, color: 'primary.main' }} /> :
+                        <StarIcon sx={{ mr: 1, color: 'primary.main' }} />
                     }
                   >
                     <MenuItem value="time">上映时间</MenuItem>
                     <MenuItem value="score">评分</MenuItem>
                   </Select>
                 </FormControl>
-                
+
                 <FormControl variant="outlined" size="small">
                   <InputLabel id="sort-order-label">排序方向</InputLabel>
                   <Select
@@ -233,24 +234,24 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
                     }}
                   >
                     {/* 全部选项 */}
-                    <MenuItem 
-                      value="" 
-                      sx={{ 
+                    <MenuItem
+                      value=""
+                      sx={{
                         fontWeight: !areaConfig.area ? 'bold' : 'normal',
                         bgcolor: !areaConfig.area ? 'rgba(0, 180, 216, 0.08)' : 'inherit'
                       }}
                     >
                       全部
                     </MenuItem>
-                    
+
                     <Divider />
-                    
+
                     {/* 直接显示所有区域，不分组，但按字母顺序排序 */}
                     {[...areas].sort().map((area) => (
-                      <MenuItem 
-                        key={area} 
+                      <MenuItem
+                        key={area}
                         value={area}
-                        sx={{ 
+                        sx={{
                           fontWeight: areaConfig.area === area ? 'bold' : 'normal',
                           bgcolor: areaConfig.area === area ? 'rgba(0, 180, 216, 0.08)' : 'inherit'
                         }}
@@ -282,24 +283,24 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
                     }}
                   >
                     {/* 全部选项 */}
-                    <MenuItem 
-                      value="" 
-                      sx={{ 
+                    <MenuItem
+                      value=""
+                      sx={{
                         fontWeight: !categoryConfig.category ? 'bold' : 'normal',
                         bgcolor: !categoryConfig.category ? 'rgba(0, 180, 216, 0.08)' : 'inherit'
                       }}
                     >
                       全部
                     </MenuItem>
-                    
+
                     <Divider />
-                    
+
                     {/* 直接显示所有类别，按字母顺序排序 */}
                     {[...categories].sort().map((category) => (
-                      <MenuItem 
-                        key={category} 
+                      <MenuItem
+                        key={category}
                         value={category}
-                        sx={{ 
+                        sx={{
                           fontWeight: categoryConfig.category === category ? 'bold' : 'normal',
                           bgcolor: categoryConfig.category === category ? 'rgba(0, 180, 216, 0.08)' : 'inherit'
                         }}
@@ -311,7 +312,7 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
                 </FormControl>
               </Stack>
             </Box>
-          
+
             {/* 搜索框 */}
             <Box component="form" onSubmit={handleSearchSubmit} sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
               <TextField
@@ -399,10 +400,10 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
         {!loading && data.length === 0 && (
           <Box sx={{ textAlign: 'center', py: 8 }}>
             <Typography variant="h6" color="textSecondary">
-              {searchQuery 
-                ? '没有找到匹配的结果' 
-                : (areaConfig.area || categoryConfig.category) 
-                  ? `没有找到符合条件的内容` 
+              {searchQuery
+                ? '没有找到匹配的结果'
+                : (areaConfig.area || categoryConfig.category)
+                  ? `没有找到符合条件的内容`
                   : '暂无数据'
               }
             </Typography>
@@ -411,14 +412,14 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
 
         {/* 回到顶部按钮 */}
         <Zoom in={showScrollTop}>
-          <Fab 
-            color="primary" 
-            size="small" 
-            aria-label="回到顶部" 
+          <Fab
+            color="primary"
+            size="small"
+            aria-label="回到顶部"
             onClick={scrollToTop}
-            sx={{ 
-              position: 'fixed', 
-              bottom: 20, 
+            sx={{
+              position: 'fixed',
+              bottom: 20,
               right: 20,
               zIndex: 1000
             }}

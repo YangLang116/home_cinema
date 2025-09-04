@@ -1,27 +1,27 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { 
-  getMovieList, 
-  getTvShowList, 
-  searchMovie, 
-  searchTvShow, 
+import {
+  getMovieList,
+  getTvShowList,
+  searchMovie,
+  searchTvShow,
   getCoverUrl,
   getMovieAreas,
   getTvShowAreas,
   getMovieCategories,
   getTvShowCategories
 } from '../services/api';
-import { 
-  Movie, 
-  TvShow, 
-  MediaType, 
+import {
+  Movie,
+  TvShow,
+  MediaType,
   BaseMedia,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  SortByType, 
+  SortByType,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  SortOrderType, 
-  SortConfig, 
-  AreaConfig, 
-  CategoryConfig 
+  SortOrderType,
+  SortConfig,
+  AreaConfig,
+  CategoryConfig
 } from '../types';
 
 function processMediaData<T extends BaseMedia>(data: T[]): T[] {
@@ -35,12 +35,12 @@ function processMediaData<T extends BaseMedia>(data: T[]): T[] {
 function isMovieArray(data: any[]): data is Movie[] {
   if (data.length === 0) return false;
   if (!('download_link' in data[0])) return false;
-  
+
   // 尝试获取第一个片源的值
   const firstItem = data[0] as Movie;
   const sources = Object.keys(firstItem.download_link);
   if (sources.length === 0) return false;
-  
+
   // 检查第一个片源的值是否为字符串
   const firstSourceValue = firstItem.download_link[sources[0]];
   return typeof firstSourceValue === 'string';
@@ -50,12 +50,12 @@ function isMovieArray(data: any[]): data is Movie[] {
 function isTvShowArray(data: any[]): data is TvShow[] {
   if (data.length === 0) return false;
   if (!('download_link' in data[0])) return false;
-  
+
   // 尝试获取第一个片源的值
   const firstItem = data[0] as TvShow;
   const sources = Object.keys(firstItem.download_link);
   if (sources.length === 0) return false;
-  
+
   // 检查第一个片源的值是否为数组
   const firstSourceValue = firstItem.download_link[sources[0]];
   return Array.isArray(firstSourceValue);
@@ -98,14 +98,14 @@ export const useMedia = ({ type, initialPage = 0, count = 20 }: UseMediaProps) =
   const [categories, setCategories] = useState<string[]>([]);
   const [areasLoading, setAreasLoading] = useState(false);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
-  
+
   // 使用ref来防止并发加载和检查是否已经加载了某个页码
   const loadingRef = useRef(false);
   const loadedPagesRef = useRef<Set<number>>(new Set([initialPage]));
-  
+
   // 预加载标志，当用户滚动到接近底部时预加载下一页
   const isPreloading = useRef(false);
-  
+
   // 标记重新加载数据请求，避免在依赖项中直接使用sortConfig
   const shouldReloadRef = useRef(false);
 
@@ -159,18 +159,18 @@ export const useMedia = ({ type, initialPage = 0, count = 20 }: UseMediaProps) =
     if (loadingRef.current) {
       return Promise.resolve(); // 返回一个已解决的Promise
     }
-    
+
     // 重置重新加载标志
     shouldReloadRef.current = false;
-    
+
     loadingRef.current = true;
     setLoading(true);
     setError(null);
-    
+
     try {
       if (type === 'movie') {
-        const result = await getMovieList({ 
-          page: currentPage, 
+        const result = await getMovieList({
+          page: currentPage,
           count,
           sort_by: sortConfig.sort_by,
           sort_order: sortConfig.sort_order,
@@ -178,7 +178,7 @@ export const useMedia = ({ type, initialPage = 0, count = 20 }: UseMediaProps) =
           category: categoryConfig.category
         });
         const processedResult = processMediaData<Movie>(result);
-        
+
         if (processedResult.length < count) {
           setHasMore(false);
         } else {
@@ -191,8 +191,8 @@ export const useMedia = ({ type, initialPage = 0, count = 20 }: UseMediaProps) =
           setData(processedResult);
         }
       } else {
-        const result = await getTvShowList({ 
-          page: currentPage, 
+        const result = await getTvShowList({
+          page: currentPage,
           count,
           sort_by: sortConfig.sort_by,
           sort_order: sortConfig.sort_order,
@@ -200,7 +200,7 @@ export const useMedia = ({ type, initialPage = 0, count = 20 }: UseMediaProps) =
           category: categoryConfig.category
         });
         const processedResult = processMediaData<TvShow>(result);
-        
+
         if (processedResult.length < count) {
           setHasMore(false);
         } else {
@@ -213,7 +213,7 @@ export const useMedia = ({ type, initialPage = 0, count = 20 }: UseMediaProps) =
           setData(processedResult);
         }
       }
-      
+
       // 记录已加载的页码
       loadedPagesRef.current.add(currentPage);
       setIsInitialLoad(false);
@@ -241,7 +241,7 @@ export const useMedia = ({ type, initialPage = 0, count = 20 }: UseMediaProps) =
     loadingRef.current = true;
     setLoading(true);
     setError(null);
-    
+
     try {
       if (type === 'movie') {
         const result = await searchMovie({ name: query });
@@ -263,7 +263,7 @@ export const useMedia = ({ type, initialPage = 0, count = 20 }: UseMediaProps) =
   // 统一的数据加载触发器
   const triggerDataLoad = useCallback(() => {
     if (loadingRef.current) return;
-    
+
     if (!searchQuery) {
       setPage(initialPage);
       loadedPagesRef.current = new Set([initialPage]);
@@ -278,7 +278,7 @@ export const useMedia = ({ type, initialPage = 0, count = 20 }: UseMediaProps) =
     // 使用ref防止重复加载
     // 标记当前加载的状态组合，用于调试
     // const loadingKey = `${type}-${searchQuery}-${sortConfig.sort_by}-${sortConfig.sort_order}-${areaConfig.area}-${categoryConfig.category}`;
-    
+
     if (isInitialLoad && !loadingRef.current) {
       triggerDataLoad();
       setIsInitialLoad(false); // 加载后立即设置为false，防止下次依赖变更再次触发
@@ -321,10 +321,10 @@ export const useMedia = ({ type, initialPage = 0, count = 20 }: UseMediaProps) =
   const loadMore = useCallback(() => {
     // 如果正在加载或没有更多数据或在搜索状态，则不加载
     if (loadingRef.current || !hasMore || searchQuery || isPreloading.current) return;
-    
+
     // 标记为预加载状态，防止重复触发
     isPreloading.current = true;
-    
+
     // 直接加载下一页，无需延迟
     const nextPage = page + 1;
     setPage(nextPage);
@@ -352,6 +352,7 @@ export const useMedia = ({ type, initialPage = 0, count = 20 }: UseMediaProps) =
     setError(null);
     setHasMore(true);
     setIsInitialLoad(true);
+    setSearchQuery(''); // 重置搜索查询
     setSortConfig(DEFAULT_SORT_CONFIG);
     setAreaConfig(DEFAULT_AREA_CONFIG);
     setCategoryConfig(DEFAULT_CATEGORY_CONFIG);
