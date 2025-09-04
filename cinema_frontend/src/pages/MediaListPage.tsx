@@ -274,6 +274,12 @@ const MediaListPage: React.FC<MediaListPageProps> = ({ type, title }) => {
                     startAdornment={<CategoryIcon sx={{ mr: 1, color: 'primary.main' }} />}
                     disabled={categoriesLoading}
                     displayEmpty
+                    renderValue={(selected) => {
+                      if (!selected) {
+                        return '全部';
+                      }
+                      return selected;
+                    }}
                     MenuProps={{
                       PaperProps: {
                         style: {
