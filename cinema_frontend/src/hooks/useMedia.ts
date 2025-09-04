@@ -1,64 +1,31 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  getMovieList,
-  getTvShowList,
-  searchMovie,
-  searchTvShow,
+import { 
+  getMovieList, 
+  getTvShowList, 
+  searchMovie, 
+  searchTvShow, 
   getCoverUrl,
   getMovieAreas,
   getTvShowAreas,
   getMovieCategories,
   getTvShowCategories
 } from '../services/api';
-import {
-  Movie,
-  TvShow,
-  MediaType,
+import { 
+  Movie, 
+  TvShow, 
+  MediaType, 
   BaseMedia,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  SortByType,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  SortOrderType,
-  SortConfig,
-  AreaConfig,
-  CategoryConfig
+  SortConfig, 
+  AreaConfig, 
+  CategoryConfig 
 } from '../types';
+import { isMovieArray, isTvShowArray } from '../utils/mediaTypeUtils';
 
 function processMediaData<T extends BaseMedia>(data: T[]): T[] {
   return data.map(item => ({
     ...item,
     cover: getCoverUrl(item.cover)
   }));
-}
-
-// 检查是否为电影数据
-function isMovieArray(data: any[]): data is Movie[] {
-  if (data.length === 0) return false;
-  if (!('download_link' in data[0])) return false;
-
-  // 尝试获取第一个片源的值
-  const firstItem = data[0] as Movie;
-  const sources = Object.keys(firstItem.download_link);
-  if (sources.length === 0) return false;
-
-  // 检查第一个片源的值是否为字符串
-  const firstSourceValue = firstItem.download_link[sources[0]];
-  return typeof firstSourceValue === 'string';
-}
-
-// 检查是否为电视剧数据
-function isTvShowArray(data: any[]): data is TvShow[] {
-  if (data.length === 0) return false;
-  if (!('download_link' in data[0])) return false;
-
-  // 尝试获取第一个片源的值
-  const firstItem = data[0] as TvShow;
-  const sources = Object.keys(firstItem.download_link);
-  if (sources.length === 0) return false;
-
-  // 检查第一个片源的值是否为数组
-  const firstSourceValue = firstItem.download_link[sources[0]];
-  return Array.isArray(firstSourceValue);
 }
 
 interface UseMediaProps {
@@ -83,7 +50,7 @@ const DEFAULT_CATEGORY_CONFIG: CategoryConfig = {
   category: ''
 };
 
-export const useMedia = ({ type, initialPage = 0, count = 20 }: UseMediaProps) => {
+export const useMedia = ({ type, initialPage = 0, count = 36 }: UseMediaProps) => {
   const [data, setData] = useState<Movie[] | TvShow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
