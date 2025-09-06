@@ -15,6 +15,7 @@ docker build --no-cache -t home_cinema_dev .
 docker run -d --name home_cinema_dev_container \
     -p 7000:7000 \
     -p 7001:7001 \
+    -v ./cinema_scrapy/images:/app/cinema_scrapy/images \
     -v ./cinema_scrapy/backup:/app/cinema_scrapy/backup \
     -v ./cinema_scrapy/movie.db:/app/cinema_scrapy/movie.db \
     -v ./cinema_scrapy/tvshow.db:/app/cinema_scrapy/tvshow.db \
@@ -24,7 +25,7 @@ docker run -d --name home_cinema_dev_container \
 
 - Windows
 ```bash
-docker run -d --name home_cinema_dev_container -p 7000:7000 -p 7001:7001 -v .\cinema_scrapy\backup:/app/cinema_scrapy/backup -v .\cinema_scrapy\movie.db:/app/cinema_scrapy/movie.db -v .\cinema_scrapy\tvshow.db:/app/cinema_scrapy/tvshow.db --restart unless-stopped home_cinema_dev
+docker run -d --name home_cinema_dev_container -p 7000:7000 -p 7001:7001 -v .\cinema_scrapy\images:/app/cinema_scrapy/images -v .\cinema_scrapy\backup:/app/cinema_scrapy/backup -v .\cinema_scrapy\movie.db:/app/cinema_scrapy/movie.db -v .\cinema_scrapy\tvshow.db:/app/cinema_scrapy/tvshow.db --restart unless-stopped home_cinema_dev
 ```
 
 ## 2、服务端口：
